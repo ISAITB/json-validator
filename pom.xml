@@ -131,11 +131,6 @@
                 <version>${commonsIo.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.everit-org.json-schema</groupId>
-                <artifactId>org.everit.json.schema</artifactId>
-                <version>${everItJson.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.leadpony.justify</groupId>
                 <artifactId>justify</artifactId>
                 <version>${justify.version}</version>

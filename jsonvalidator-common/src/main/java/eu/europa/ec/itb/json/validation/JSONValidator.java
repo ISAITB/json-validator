@@ -12,11 +12,6 @@ import eu.europa.ec.itb.json.utils.Utils;
 import jakarta.json.stream.JsonParser;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.ProblemHandler;
@@ -30,10 +25,8 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -178,36 +171,6 @@ public class JSONValidator {
         return report;
     }
 
-    private TAR validateInternal_Everit() {
-        TAR report;
-        // TODO specify schema draft version
-        // TODO specify semantics when having multiple schemas (any, all, one)
-        List<FileInfo> schemaFiles = fileManager.getPreconfiguredSchemaFileInfos(domainConfig, validationType);
-        schemaFiles.addAll(externalSchemaFileInfo);
-        if (schemaFiles.isEmpty()) {
-            throw new ValidatorException("No schemas are defined for the validation.");
-        } else {
-            File schemaFile = schemaFiles.get(0).getFile();
-            try (InputStream in = Files.newInputStream(schemaFile.toPath())) {
-                JSONObject rawSchema = new JSONObject(new JSONTokener(in));
-                Schema schema = SchemaLoader.load(rawSchema);
-                // TODO allow external definition of character set.
-                // TODO don't process using strings.
-                JSONObject input = new JSONObject(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
-                try {
-                    schema.validate(input);
-                    report = createReport();
-                } catch (ValidationException validationException) {
-                    // We have validation failures.
-                    report = createReport(validationException);
-                }
-            } catch (IOException e) {
-                throw new ValidatorException("An error occurred while running the schema validation.", e);
-            }
-        }
-        return report;
-    }
-
     private TAR createReport(List<String> errorMessages) {
         TAR report = new TAR();
         try {
@@ -265,49 +228,6 @@ public class JSONValidator {
             }
         }
         return report;
-    }
-
-    private TAR createReport() {
-        return createReport((ValidationException)null);
-    }
-
-    private TAR createReport(ValidationException validationException) {
-        TAR report = new TAR();
-        if (validationException == null) {
-            report.setResult(TestResultType.SUCCESS);
-        } else {
-            report.setResult(TestResultType.FAILURE);
-            report.setCounters(new ValidationCounters());
-            report.getCounters().setNrOfErrors(BigInteger.ZERO);
-            report.getCounters().setNrOfWarnings(BigInteger.ZERO);
-            report.getCounters().setNrOfAssertions(BigInteger.ZERO);
-            report.setReports(new TestAssertionGroupReportsType());
-            addReportItem(report, validationException);
-        }
-        try {
-            report.setDate(Utils.getXMLGregorianCalendarDateTime());
-        } catch (DatatypeConfigurationException e) {
-            throw new IllegalStateException("Exception while creating XMLGregorianCalendar", e);
-        }
-        return report;
-    }
-
-    private void addReportItem(TAR report, ValidationException exception) {
-        if (exception.getCausingExceptions() == null || exception.getCausingExceptions().isEmpty()) {
-            // Leaf - record report item.
-            BAR error = new BAR();
-            if (StringUtils.isNotBlank(exception.getKeyword())) {
-                error.setDescription("["+exception.getKeyword()+"] " + exception.getMessage());
-            } else {
-                error.setDescription(exception.getMessage());
-            }
-            error.setLocation(exception.getPointerToViolation());
-            report.getReports().getInfoOrWarningOrError().add(objectFactory.createTestAssertionGroupReportsTypeError(error));
-            report.getCounters().setNrOfErrors(report.getCounters().getNrOfErrors().add(BigInteger.ONE));
-        } else {
-            // Step into children failures.
-            exception.getCausingExceptions().forEach((childException) -> addReportItem(report, childException));
-        }
     }
 
 }
