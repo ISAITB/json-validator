@@ -1,0 +1,36 @@
+{
+  "$id": "https://example.com/arrays.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "A representation of people",
+  "type": "object",
+  "properties": {
+    "people": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/person" }
+    }
+  },
+  "definitions": {
+    "person": {
+      "type": "object",
+      "required": [ "firstName", "lastName" ],
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "description": "The first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name."
+        },
+        "age": {
+          "type": "integer",
+          "description": "The age."
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/person" }
+        }
+      }
+    }
+  }
+}
