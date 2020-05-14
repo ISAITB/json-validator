@@ -6,11 +6,11 @@ public class FileInfo {
 
     private File file;
 
-    public FileInfo(File file) {
+    FileInfo(File file) {
         this.file = file;
     }
 
-    public File getFile() {
+    File getFile() {
         return file;
     }
 

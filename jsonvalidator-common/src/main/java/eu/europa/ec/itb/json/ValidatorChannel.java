@@ -4,7 +4,6 @@ public enum ValidatorChannel {
 	
     FORM("form"),
     EMAIL("email"),
-	REST_API("rest_api"),
 	SOAP_API("soap_api");
 
     private String name;
@@ -22,8 +21,6 @@ public enum ValidatorChannel {
             return FORM;
         } else if (EMAIL.getName().equals(name)) {
             return EMAIL;
-        } else if (REST_API.getName().equals(name)) {
-            return REST_API;
         } else if (SOAP_API.getName().equals(name)) {
             return SOAP_API;            
         } else {

@@ -36,11 +36,11 @@ public class ValidationServiceImpl implements ValidationService {
     private final DomainConfig domainConfig;
 
     @Autowired
-    ApplicationContext ctx;
+    private ApplicationContext ctx = null;
     @Autowired
-    ValidatorContent validatorContent;
+    private ValidatorContent validatorContent = null;
     @Autowired
-    FileManager fileManager;
+    private FileManager fileManager = null;
 
     public ValidationServiceImpl(DomainConfig domainConfig) {
         this.domainConfig = domainConfig;
@@ -63,15 +63,15 @@ public class ValidationServiceImpl implements ValidationService {
         response.getModule().getMetadata().setName(domainConfig.getWebServiceId());
         response.getModule().getMetadata().setVersion("1.0.0");
         response.getModule().setInputs(new TypedParameters());
-        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_CONTENT, "binary", UsageEnumeration.R, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_CONTENT)));
-        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_EMBEDDING_METHOD, "string", UsageEnumeration.O, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EMBEDDING_METHOD)));
-        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_VALIDATION_TYPE, "string", UsageEnumeration.O, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_VALIDATION_TYPE)));
+        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_CONTENT, "binary", UsageEnumeration.R, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_CONTENT)));
+        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_EMBEDDING_METHOD, "string", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EMBEDDING_METHOD)));
+        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_VALIDATION_TYPE, "string", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_VALIDATION_TYPE)));
         boolean allowsExternalSchemas = definesTypeWithExternalSchemas();
         if (allowsExternalSchemas) {
-            response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_EXTERNAL_SCHEMAS, "list[map]", UsageEnumeration.O, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EXTERNAL_SCHEMAS)));
-            response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, "boolean", UsageEnumeration.O, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH)));
+            response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_EXTERNAL_SCHEMAS, "list[map]", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EXTERNAL_SCHEMAS)));
+            response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, "boolean", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH)));
         }
-        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_LOCATION_AS_POINTER, "boolean", UsageEnumeration.O, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_LOCATION_AS_POINTER)));
+        response.getModule().getInputs().getParam().add(createParameter(ValidationConstants.INPUT_LOCATION_AS_POINTER, "boolean", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_LOCATION_AS_POINTER)));
         return response;
     }
 
@@ -90,16 +90,15 @@ public class ValidationServiceImpl implements ValidationService {
      * @param name The name of the parameter.
      * @param type The type of the parameter. This needs to match one of the GITB types.
      * @param use The use (required or optional).
-     * @param kind The kind of parameter it is (whether it should be provided as the specific value, as BASE64 content or as a URL that needs to be looked up to obtain the value).
      * @param description The description of the parameter.
      * @return The created parameter.
      */
-    private TypedParameter createParameter(String name, String type, UsageEnumeration use, ConfigurationType kind, String description) {
+    private TypedParameter createParameter(String name, String type, UsageEnumeration use, String description) {
         TypedParameter parameter =  new TypedParameter();
         parameter.setName(name);
         parameter.setType(type);
         parameter.setUse(use);
-        parameter.setKind(kind);
+        parameter.setKind(ConfigurationType.SIMPLE);
         parameter.setDesc(description);
         return parameter;
     }
@@ -129,6 +128,9 @@ public class ValidationServiceImpl implements ValidationService {
             JSONValidator validator = ctx.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, locationAsPointer);
 			result.setReport(validator.validate());
 			return result;
+        } catch (ValidatorException e) {
+            logger.error("Validation error", e);
+            throw e;
 		} catch (Exception e) {
 			logger.error("Unexpected error", e);
 			throw new ValidatorException(e);
@@ -144,7 +146,11 @@ public class ValidationServiceImpl implements ValidationService {
         List<AnyContent> inputs =  getInputFor(validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH);
         SchemaCombinationApproach approach;
         if (inputs.size() > 0) {
-            approach = SchemaCombinationApproach.valueOf(inputs.get(0).getValue());
+            try {
+                approach = SchemaCombinationApproach.valueOf(inputs.get(0).getValue());
+            } catch (IllegalArgumentException e) {
+                throw new ValidatorException("Invalid schema combination approach ["+inputs.get(0).getValue()+"].", e);
+            }
         } else {
             approach = domainConfig.getExternalSchemaCombinationApproach().get(validationType);
         }

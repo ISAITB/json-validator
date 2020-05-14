@@ -13,7 +13,7 @@ import java.io.IOException;
 public class ValidatorContent {
 
     @Autowired
-	private FileManager fileManager;
+	private FileManager fileManager = null;
 
     public String validateValidationType(String validationType, DomainConfig domainConfig) {
     	if (validationType != null && !domainConfig.getType().contains(validationType)) {

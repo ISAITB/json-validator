@@ -19,7 +19,7 @@ public class FileContent {
         this.content = content;
     }
 
-    public String getEmbeddingMethod() {
+    String getEmbeddingMethod() {
         return embeddingMethod;
     }
 

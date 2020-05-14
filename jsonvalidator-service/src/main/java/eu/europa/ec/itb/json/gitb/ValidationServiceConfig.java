@@ -21,16 +21,16 @@ import javax.xml.namespace.QName;
 @Configuration
 public class ValidationServiceConfig {
 
-    public static final String CXF_ROOT = "soap";
+    private static final String CXF_ROOT = "soap";
 
     @Autowired
-    private Bus cxfBus;
+    private Bus cxfBus = null;
     
     @Autowired
-    private ApplicationContext applicationContext;
+    private ApplicationContext applicationContext = null;
 
     @Autowired
-    private DomainConfigCache domainConfigCache;
+    private DomainConfigCache domainConfigCache = null;
 
     @Bean
     public ServletRegistrationBean servletRegistrationBean(ApplicationContext context) {

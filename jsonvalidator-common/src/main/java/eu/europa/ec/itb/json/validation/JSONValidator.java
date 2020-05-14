@@ -15,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.ProblemHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,10 +32,8 @@ import java.util.List;
 @Scope("prototype")
 public class JSONValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(JSONValidator.class);
-
     @Autowired
-    private FileManager fileManager;
+    private FileManager fileManager = null;
 
     private ObjectFactory objectFactory = new ObjectFactory();
     private File inputFileToValidate;
@@ -62,7 +58,7 @@ public class JSONValidator {
     public TAR validate() {
         try {
             fileManager.signalValidationStart(domainConfig.getDomainName());
-            return validateInternal_Justify();
+            return validateInternal();
         } finally {
             fileManager.signalValidationEnd(domainConfig.getDomainName());
         }
@@ -136,7 +132,7 @@ public class JSONValidator {
         return errorMessages;
     }
 
-    private TAR validateInternal_Justify() {
+    private TAR validateInternal() {
         TAR report;
         List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredSchemaFileInfos(domainConfig, validationType);
         if (preconfiguredSchemaFiles.isEmpty() && externalSchemaFileInfo.isEmpty()) {

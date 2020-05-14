@@ -33,32 +33,27 @@ public class FileManager {
 	private static final Logger logger = LoggerFactory.getLogger(FileManager.class);
 
 	@Autowired
-	private ApplicationConfig config;
+	private ApplicationConfig config = null;
 
 	@Autowired
-	private DomainConfigCache domainConfigCache;
+	private DomainConfigCache domainConfigCache = null;
 
 	private ConcurrentHashMap<String, ReadWriteLock> externalDomainFileCacheLocks = new ConcurrentHashMap<>();
 
-	private File getURLFile(String targetFolder, String URLConvert, String fileName) throws IOException {
+	private File getURLFile(String targetFolder, String URLConvert) throws IOException {
 		URL url = new URL(URLConvert);
 		String extension = FilenameUtils.getExtension(url.getFile());
-		return getURLFile(targetFolder, URLConvert, extension, fileName);
+		return getURLFile(targetFolder, URLConvert, extension);
 	}
 
-	private File getURLFile(String targetFolder, String URLConvert, String extension, String fileName) throws IOException {
+	private File getURLFile(String targetFolder, String URLConvert, String extension) throws IOException {
 		Path tmpPath;
 		if (extension == null) {
 			extension = ".json";
 		} else if (!extension.startsWith(".")) {
 			extension = "." + extension;
 		}
-		if (fileName == null || fileName.isEmpty()) {
-			tmpPath = getFilePath(targetFolder, extension);
-		} else {
-			tmpPath = getFilePath(targetFolder, extension, fileName);
-		}
-
+		tmpPath = getFilePath(targetFolder, extension);
 		try (InputStream in = getURIInputStream(URLConvert)){
 			Files.copy(in, tmpPath, StandardCopyOption.REPLACE_EXISTING);
 		}
@@ -90,41 +85,21 @@ public class FileManager {
 	}
 
 	public File getStringFile(File targetFolder, String content) throws IOException {
-		return getStringFile(targetFolder, content, null);
+		return getStringFile(targetFolder.getAbsolutePath(), content);
 	}
 
-	public File getStringFile(File targetFolder, String content, String fileName) throws IOException {
-		return getStringFile(targetFolder.getAbsolutePath(), content, fileName);
-	}
-
-	public File getStringFile(String targetFolder, String content, String fileName) throws IOException {
+	private File getStringFile(String targetFolder, String content) throws IOException {
 		String extension = ".json";
 		Path tmpPath;
-		if(fileName == null || fileName.isEmpty()) {
-			tmpPath = getFilePath(targetFolder, extension);
-		}else {
-			tmpPath = getFilePath(targetFolder, extension, fileName);
-		}
-		try(InputStream in = new ByteArrayInputStream(content.getBytes())){
+		tmpPath = getFilePath(targetFolder, extension);
+		try (InputStream in = new ByteArrayInputStream(content.getBytes())){
 			Files.copy(in, tmpPath, StandardCopyOption.REPLACE_EXISTING);
 		}
 		return tmpPath.toFile();
 	}
 
-	public File getInputStreamFile(String targetFolder, InputStream stream, String fileName) throws IOException {
-		String extension = ".json";
-		Path tmpPath;
-		if (fileName == null || fileName.isEmpty()) {
-			tmpPath = getFilePath(targetFolder, extension);
-		} else {
-			tmpPath = getFilePath(targetFolder, extension, fileName);
-		}
-		Files.copy(stream, tmpPath, StandardCopyOption.REPLACE_EXISTING);
-		return tmpPath.toFile();
-	}
-
 	public File getURLFile(File targetFolder, String URLConvert) throws IOException {
-		return getURLFile(targetFolder.getAbsolutePath(), URLConvert, null);
+		return getURLFile(targetFolder.getAbsolutePath(), URLConvert);
 	}
 
 	public List<FileInfo> getRemoteExternalSchemas(File parentFolder, List<FileContent> externalSchemas) throws IOException {
@@ -147,7 +122,7 @@ public class FileManager {
 							break;
 						case FileContent.embedding_STRING:
 							try{
-								contentFile = getStringFile(externalSchemaFolder, externalSchema.getContent(), null);
+								contentFile = getStringFile(externalSchemaFolder, externalSchema.getContent());
 							}catch(IOException e) {
 								throw new IllegalArgumentException("Error when transforming the STRING into File.", e);
 							}
@@ -176,13 +151,6 @@ public class FileManager {
 
 	private Path getFilePath(String folder, String extension) {
 		Path tmpPath = Paths.get(folder, UUID.randomUUID().toString() + extension);
-		tmpPath.toFile().getParentFile().mkdirs();
-
-		return tmpPath;
-	}
-
-	private Path getFilePath(String folder, String extension, String fileName) {
-		Path tmpPath = Paths.get(folder, fileName + extension);
 		tmpPath.toFile().getParentFile().mkdirs();
 
 		return tmpPath;
@@ -235,7 +203,7 @@ public class FileManager {
 		resetRemoteFileCache();
 	}
 
-	public List<FileInfo> getPreconfiguredSchemaFileInfos(DomainConfig domainConfig, String validationType){
+	List<FileInfo> getPreconfiguredSchemaFileInfos(DomainConfig domainConfig, String validationType){
 		List<FileInfo> shaclFiles = new ArrayList<>();
 		for (File localFile: getLocalSchemaFiles(domainConfig, validationType)) {
 			shaclFiles.addAll(getLocalSchemaFileInfos(localFile));
@@ -298,7 +266,7 @@ public class FileManager {
 	}
 
 	@Scheduled(fixedDelayString = "${validator.cleanupRate}")
-	public void resetRemoteFileCache() {
+	private void resetRemoteFileCache() {
 		logger.debug("Resetting remote file cache");
 		for (DomainConfig domainConfig: domainConfigCache.getAllDomainConfigurations()) {
 			try {
@@ -316,7 +284,7 @@ public class FileManager {
 					if (ri != null) {
 						try {
 							for (DomainConfig.RemoteInfo info: ri) {
-								getURLFile(remoteConfigFolder.getAbsolutePath(), info.getUrl(), null, null);
+								getURLFile(remoteConfigFolder.getAbsolutePath(), info.getUrl(), null);
 							}
 						} catch (IOException e) {
 							logger.error("Error to load the remote schema file", e);
@@ -332,13 +300,13 @@ public class FileManager {
 		}
 	}
 
-	public void signalValidationStart(String domainName) {
+	void signalValidationStart(String domainName) {
 		logger.debug("Signalling validation start for ["+domainName+"]");
 		externalDomainFileCacheLocks.get(domainName).readLock().lock();
 		logger.debug("Signalled validation start for ["+domainName+"]");
 	}
 
-	public void signalValidationEnd(String domainName) {
+	void signalValidationEnd(String domainName) {
 		logger.debug("Signalling validation end for ["+domainName+"]");
 		externalDomainFileCacheLocks.get(domainName).readLock().unlock();
 		logger.debug("Signalled validation end for ["+domainName+"]");

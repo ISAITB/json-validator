@@ -28,7 +28,7 @@ public class DomainConfigCache {
     private static Logger logger = LoggerFactory.getLogger(DomainConfigCache.class);
 
     @Autowired
-    private ApplicationConfig appConfig;
+    private ApplicationConfig appConfig = null;
     private ConcurrentHashMap<String, DomainConfig> domainConfigs = new ConcurrentHashMap<>();
     private DomainConfig undefinedDomainConfig = new DomainConfig(false);
 
@@ -82,7 +82,7 @@ public class DomainConfigCache {
                 domainConfig.setDomainName(appConfig.getDomainIdToDomainName().get(domain));
                 domainConfig.setType(Arrays.stream(StringUtils.split(config.getString("validator.type"), ',')).map(String::trim).collect(Collectors.toList()));
                 domainConfig.setTypeLabel(parseMap("validator.typeLabel", config, domainConfig.getType()));
-                domainConfig.setChannels(Arrays.stream(StringUtils.split(config.getString("validator.channels", ValidatorChannel.REST_API.getName()+","+ValidatorChannel.SOAP_API.getName()+","+ValidatorChannel.FORM.getName()), ',')).map(String::trim).map(ValidatorChannel::byName).collect(Collectors.toSet()));
+                domainConfig.setChannels(Arrays.stream(StringUtils.split(config.getString("validator.channels", ValidatorChannel.SOAP_API.getName()+","+ValidatorChannel.FORM.getName()), ',')).map(String::trim).map(ValidatorChannel::byName).collect(Collectors.toSet()));
                 domainConfig.setSchemaFile(parseSchemaMap("validator.schemaFile", config, domainConfig.getType()));
                 domainConfig.setExternalSchemas(parseBooleanMap("validator.externalSchemas", config, domainConfig.getType()));
                 domainConfig.setExternalSchemaCombinationApproach(parseEnumMap("validator.externalSchemaCombinationApproach", SchemaCombinationApproach.class, SchemaCombinationApproach.allOf, config, domainConfig.getType()));
@@ -139,13 +139,11 @@ public class DomainConfigCache {
         Map<String, Boolean> map = new HashMap<>();
         for (String type: types) {
             boolean value = false;
-
             try {
                 value = config.getBoolean(key+"."+type);
-            }catch(Exception e){
-                value = false;
-            }
-            finally {
+            } catch (Exception e){
+                // Ignore.
+            } finally {
                 map.put(type, value);
             }
         }
@@ -164,11 +162,11 @@ public class DomainConfigCache {
         return map;
     }
 
-    private class ExtensionFilter implements FilenameFilter {
+    private static class ExtensionFilter implements FilenameFilter {
 
         private String ext;
 
-        public ExtensionFilter(String ext) {
+        ExtensionFilter(String ext) {
             this.ext = ext;
         }
 
