@@ -76,8 +76,8 @@ public class ValidationServiceImpl implements ValidationService {
     }
 
     private boolean definesTypeWithExternalSchemas() {
-        for (Boolean value: domainConfig.getExternalSchemas().values()) {
-            if (value) {
+        for (String value: domainConfig.getExternalSchemas().values()) {
+            if (!DomainConfig.externalFile_none.equals(value)) {
                 return true;
             }
         }
@@ -175,8 +175,14 @@ public class ValidationServiceImpl implements ValidationService {
         List<FileContent> filesContent = new ArrayList<>();
         List<AnyContent> listInput = getInputFor(validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMAS);
 
-        if (!listInput.isEmpty()) {
-            if (!domainConfig.getExternalSchemas().get(validationType)) {
+        if (listInput.isEmpty()) {
+            if (domainConfig.getExternalSchemas().get(validationType).equals(DomainConfig.externalFile_req)) {
+                throw new ValidatorException(String.format("Validation type [%s] expects user-provided schemas.", validationType));
+            } else {
+                return Collections.emptyList();
+            }
+        } else {
+            if (domainConfig.getExternalSchemas().get(validationType).equals(DomainConfig.externalFile_none)) {
                 throw new ValidatorException(String.format("Validation type [%s] does not expect user-provided schemas.", validationType));
             }
             AnyContent listRuleSets = listInput.get(0);
@@ -190,8 +196,6 @@ public class ValidationServiceImpl implements ValidationService {
                 }
             }
             return getExternalSchemas(filesContent, parentFolder);
-        } else {
-            return Collections.emptyList();
         }
     }
 
@@ -266,10 +270,10 @@ public class ValidationServiceImpl implements ValidationService {
         }
 		return validatorContent.validateValidationType(validationType, domainConfig);
 	}
-    
+
     private String validateContentEmbeddingMethod(ValidateRequest validateRequest){
-        List<AnyContent> listContentEmbeddingMethod = getInputFor(validateRequest, ValidationConstants.INPUT_EMBEDDING_METHOD);        
-        
+        List<AnyContent> listContentEmbeddingMethod = getInputFor(validateRequest, ValidationConstants.INPUT_EMBEDDING_METHOD);
+
         if(!listContentEmbeddingMethod.isEmpty()) {
         	AnyContent content = listContentEmbeddingMethod.get(0);
 
@@ -278,7 +282,7 @@ public class ValidationServiceImpl implements ValidationService {
         	return null;
         }
     }
-    
+
     private String getEmbeddingMethod(AnyContent content) {
     	String value = content.getValue();
     	if (!StringUtils.isBlank(value)) {

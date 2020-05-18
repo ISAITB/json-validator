@@ -6,6 +6,7 @@ import com.gitb.tr.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonSyntaxException;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.errors.ValidatorException;
 import eu.europa.ec.itb.json.utils.Utils;
@@ -69,11 +70,13 @@ public class JSONValidator {
             JsonElement json = com.google.gson.JsonParser.parseReader(in);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String jsonOutput = gson.toJson(json);
-            File output = new File(input.getParent(), input.getName()+".pretty");
+            File output = new File(input.getParent(), input.getName() + ".pretty");
             FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
             return output;
+        } catch (JsonSyntaxException e) {
+            throw new ValidatorException("The provided input is not valid JSON.", e);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to parse JSON input.", e);
+            throw new ValidatorException("Failed to parse JSON input.", e);
         }
     }
 
@@ -177,13 +180,13 @@ public class JSONValidator {
         report.setCounters(new ValidationCounters());
         report.getCounters().setNrOfWarnings(BigInteger.ZERO);
         report.getCounters().setNrOfAssertions(BigInteger.ZERO);
+        report.setReports(new TestAssertionGroupReportsType());
         if (errorMessages == null || errorMessages.isEmpty()) {
             report.setResult(TestResultType.SUCCESS);
             report.getCounters().setNrOfErrors(BigInteger.ZERO);
         } else {
             report.setResult(TestResultType.FAILURE);
             report.getCounters().setNrOfErrors(BigInteger.valueOf(errorMessages.size()));
-            report.setReports(new TestAssertionGroupReportsType());
             for (String errorMessage: errorMessages) {
                 BAR error = new BAR();
                 String location = null;
