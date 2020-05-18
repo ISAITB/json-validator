@@ -6,7 +6,7 @@ public class FileInfo {
 
     private File file;
 
-    FileInfo(File file) {
+    public FileInfo(File file) {
         this.file = file;
     }
 

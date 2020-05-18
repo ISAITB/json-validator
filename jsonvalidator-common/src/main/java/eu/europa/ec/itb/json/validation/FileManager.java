@@ -1,23 +1,34 @@
 package eu.europa.ec.itb.json.validation;
 
+import com.gitb.tr.ObjectFactory;
+import com.gitb.tr.TAR;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.DomainConfigCache;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
 
 import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,6 +42,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class FileManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileManager.class);
+	private static JAXBContext REPORT_CONTEXT;
+	private static ObjectFactory OBJECT_FACTORY = new ObjectFactory();
+
+	static {
+		try {
+			REPORT_CONTEXT = JAXBContext.newInstance(TAR.class);
+		} catch (JAXBException e) {
+			throw new IllegalStateException("Unable to create JAXB context for TAR class", e);
+		}
+	}
 
 	@Autowired
 	private ApplicationConfig config = null;
@@ -40,7 +61,7 @@ public class FileManager {
 
 	private ConcurrentHashMap<String, ReadWriteLock> externalDomainFileCacheLocks = new ConcurrentHashMap<>();
 
-	private File getURLFile(String targetFolder, String URLConvert) throws IOException {
+	public File getURLFile(String targetFolder, String URLConvert) throws IOException {
 		URL url = new URL(URLConvert);
 		String extension = FilenameUtils.getExtension(url.getFile());
 		return getURLFile(targetFolder, URLConvert, extension);
@@ -60,7 +81,7 @@ public class FileManager {
 		return tmpPath.toFile();
 	}
 
-	private InputStream getURIInputStream(String URLConvert) {
+	public InputStream getURIInputStream(String URLConvert) {
         // Read the string from the provided URI.
         URI uri = URI.create(URLConvert);
         Proxy proxy = null;
@@ -95,6 +116,18 @@ public class FileManager {
 		try (InputStream in = new ByteArrayInputStream(content.getBytes())){
 			Files.copy(in, tmpPath, StandardCopyOption.REPLACE_EXISTING);
 		}
+		return tmpPath.toFile();
+	}
+
+	private Path getFilePathFilename(String folder, String fileName) {
+		Path tmpPath = Paths.get(folder, fileName);
+		tmpPath.toFile().getParentFile().mkdirs();
+		return tmpPath;
+	}
+
+	public File getInputStreamFile(File targetFolder, InputStream stream, String fileName) throws IOException {
+		Path tmpPath = getFilePathFilename(targetFolder.getAbsolutePath(), fileName);
+		Files.copy(stream, tmpPath, StandardCopyOption.REPLACE_EXISTING);
 		return tmpPath.toFile();
 	}
 
@@ -160,7 +193,7 @@ public class FileManager {
     	return new File(config.getTmpFolder());
 	}
 
-    private File getRemoteFileCacheFolder() {
+    public File getRemoteFileCacheFolder() {
     	return new File(getTempFolder(), "remote_config");
 	}
 
@@ -300,6 +333,12 @@ public class FileManager {
 		}
 	}
 
+	public boolean checkFileType(InputStream stream) throws IOException {
+		Tika tika = new Tika();
+		String type = tika.detect(stream);
+		return config.getAcceptedMimeTypes().contains(type);
+	}
+
 	void signalValidationStart(String domainName) {
 		logger.debug("Signalling validation start for ["+domainName+"]");
 		externalDomainFileCacheLocks.get(domainName).readLock().lock();
@@ -310,6 +349,58 @@ public class FileManager {
 		logger.debug("Signalling validation end for ["+domainName+"]");
 		externalDomainFileCacheLocks.get(domainName).readLock().unlock();
 		logger.debug("Signalled validation end for ["+domainName+"]");
+	}
+
+	public String writeJson(String domain, String json) throws IOException {
+		UUID fileUUID = UUID.randomUUID();
+		String jsonID = domain+"_"+fileUUID.toString();
+		File outputFile = new File(config.getReportFolder(), getInputFileName(jsonID));
+		outputFile.getParentFile().mkdirs();
+		FileUtils.writeStringToFile(outputFile, json, StandardCharsets.UTF_8);
+		return jsonID;
+	}
+
+	public String getInputFileName(String uuid) {
+		return "ITB-"+uuid+".json";
+	}
+
+	public String getReportFileNamePdf(String uuid) {
+		return "TAR-"+uuid+".pdf";
+	}
+
+	public String getReportFileNameXml(String uuid) {
+		return "TAR-"+uuid+".xml";
+	}
+
+	public void saveReport(TAR report, String xmlID) {
+		File outputFile = new File(config.getReportFolder(), getReportFileNameXml(xmlID));
+		saveReport(report, outputFile);
+	}
+
+	public void saveReport(TAR report, File outputFile) {
+		try {
+			Marshaller m = REPORT_CONTEXT.createMarshaller();
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			outputFile.getParentFile().mkdirs();
+
+			DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+			Document document = docBuilderFactory.newDocumentBuilder().newDocument();
+			m.marshal(OBJECT_FACTORY.createTestStepReport(report), document);
+
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.CDATA_SECTION_ELEMENTS, "{http://www.gitb.com/core/v1/}value");
+			try (OutputStream fos = new FileOutputStream(outputFile)) {
+				transformer.transform(new DOMSource(document), new StreamResult(fos));
+				fos.flush();
+			} catch(IOException e) {
+				logger.warn("Unable to save XML report", e);
+			}
+
+		} catch (Exception e) {
+			logger.warn("Unable to marshal XML report", e);
+		}
 	}
 
 }

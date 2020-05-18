@@ -14,10 +14,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,11 +34,18 @@ public class ApplicationConfig {
 
     private String resourceRoot;
     private String tmpFolder;
+    private File reportFolder;
     private Set<String> acceptedSchemaExtensions;
     private Set<String> domain;
     private Map<String, String> domainIdToDomainName = new HashMap<>();
     private Map<String, String> domainNameToDomainId = new HashMap<>();
     private Map<String, String> defaultLabels = new HashMap<>();
+    private long cleanupWebRate;
+    private long minimumCachedInputFileAge = 600000L;
+    private long minimumCachedReportFileAge = 600000L;
+    private Set<String> acceptedMimeTypes;
+    private String startupTimestamp;
+    private String resourceUpdateTimestamp;
 
     private String defaultContentToValidateDescription;
     private String defaultEmbeddingMethodDescription;
@@ -46,6 +53,54 @@ public class ApplicationConfig {
     private String defaultExternalSchemaCombinationApproachDescription;
     private String defaultValidationTypeDescription;
     private String defaultLocationAsPointerDescription;
+
+    public String getStartupTimestamp() {
+        return startupTimestamp;
+    }
+
+    public void setStartupTimestamp(String startupTimestamp) {
+        this.startupTimestamp = startupTimestamp;
+    }
+
+    public String getResourceUpdateTimestamp() {
+        return resourceUpdateTimestamp;
+    }
+
+    public void setResourceUpdateTimestamp(String resourceUpdateTimestamp) {
+        this.resourceUpdateTimestamp = resourceUpdateTimestamp;
+    }
+
+    public long getMinimumCachedInputFileAge() {
+        return minimumCachedInputFileAge;
+    }
+
+    public void setMinimumCachedInputFileAge(long minimumCachedInputFileAge) {
+        this.minimumCachedInputFileAge = minimumCachedInputFileAge;
+    }
+
+    public long getMinimumCachedReportFileAge() {
+        return minimumCachedReportFileAge;
+    }
+
+    public void setMinimumCachedReportFileAge(long minimumCachedReportFileAge) {
+        this.minimumCachedReportFileAge = minimumCachedReportFileAge;
+    }
+
+    public File getReportFolder() {
+        return reportFolder;
+    }
+
+    public void setReportFolder(File reportFolder) {
+        this.reportFolder = reportFolder;
+    }
+
+    public Set<String> getAcceptedMimeTypes() {
+        return acceptedMimeTypes;
+    }
+
+    public void setAcceptedMimeTypes(Set<String> acceptedMimeTypes) {
+        this.acceptedMimeTypes = acceptedMimeTypes;
+    }
 
     public String getTmpFolder() {
         return tmpFolder;
@@ -139,6 +194,14 @@ public class ApplicationConfig {
         this.defaultExternalSchemaCombinationApproachDescription = defaultExternalSchemaCombinationApproachDescription;
     }
 
+    public long getCleanupWebRate() {
+        return cleanupWebRate;
+    }
+
+    public void setCleanupWebRate(long cleanupWebRate) {
+        this.cleanupWebRate = cleanupWebRate;
+    }
+
     @PostConstruct
     public void init() {
         if (resourceRoot != null && Files.isDirectory(Paths.get(resourceRoot))) {
@@ -168,6 +231,11 @@ public class ApplicationConfig {
             logMsg.append('[').append(domainFolder).append("]=[").append(domainName).append("]");
         }
         logger.info("Loaded validation domain names: " + logMsg.toString());
+        // Set startup times and resource update times.
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss (XXX)");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss (XXX)");
+        startupTimestamp = dtf.format(ZonedDateTime.now());
+        resourceUpdateTimestamp = sdf.format(new Date(Paths.get(resourceRoot).toFile().lastModified()));
         // Default labels.
         defaultLabels.put(ValidationConstants.INPUT_CONTENT, defaultContentToValidateDescription);
         defaultLabels.put(ValidationConstants.INPUT_EMBEDDING_METHOD, defaultEmbeddingMethodDescription);
