@@ -48,7 +48,7 @@
                 <div class="panel-heading panel-heading-ui" th:if="${minimalUI}">
                     <h1 class="panel-title col-xs-5 minimal-title panel-title-ui">Validation input</h1>
                     <div th:align="right">
-                        <button type="submit" id="inputFileSubmitMinimal" class="btn btn-default" disabled="true" onclick="uploadFile()" th:text="${config.label.uploadButton}">Upload</button>
+                        <button type="submit" id="inputFileSubmit" class="btn btn-default" disabled="true" onclick="uploadFile()" th:text="${config.label.uploadButton}">Upload</button>
                     </div>
                 </div>
                 <div th:class="${minimalUI} ? panel-body : ''">
