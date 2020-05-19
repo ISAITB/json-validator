@@ -11,6 +11,7 @@ import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.errors.ValidatorException;
 import eu.europa.ec.itb.json.utils.Utils;
 import jakarta.json.stream.JsonParser;
+import jakarta.json.stream.JsonParsingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
@@ -124,7 +125,12 @@ public class JSONValidator {
 
     private List<String> validateAgainstSchema(File schemaFile) {
         JsonValidationService service = JsonValidationService.newInstance();
-        JsonSchema schema = service.readSchema(schemaFile.toPath());
+        JsonSchema schema = null;
+        try {
+            schema = service.readSchema(schemaFile.toPath());
+        } catch (JsonParsingException e) {
+            throw new ValidatorException("Error while parsing JSON schema: "+e.getMessage(), e);
+        }
         List<String> errorMessages = new ArrayList<>();
         ProblemHandler handler = service.createProblemPrinterBuilder(errorMessages::add).withLocation(!locationAsPointer).build();
         try (JsonParser parser = service.createParser(inputFileToValidate.toPath(), schema, handler)) {

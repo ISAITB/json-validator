@@ -146,3 +146,6 @@ body {
    overflow: auto;
    overflow-y: auto;
 }
+.minimal-title {
+    padding-top: 8px;
+}
