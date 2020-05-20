@@ -21,6 +21,8 @@
         <module>jsonvalidator-war</module>
     </modules>
     <properties>
+        <validatorTimestamp>${maven.build.timestamp}</validatorTimestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss (XXX)</maven.build.timestamp.format>
         <springBoot.version>2.2.7.RELEASE</springBoot.version>
         <gitbTypes.version>1.9.0</gitbTypes.version>
         <slf4j.version>1.7.30</slf4j.version>
