@@ -102,11 +102,7 @@ public class JSONValidator {
             if (successCount == 1) {
                 aggregatedErrorMessages.clear();
             } else if (successCount > 1) {
-                if (locationAsPointer) {
-                    aggregatedErrorMessages.add("[#/] Only one schema should be valid. Instead the content validated against "+successCount+" schemas.");
-                } else {
-                    aggregatedErrorMessages.add("[0,0] Only one schema should be valid. Instead the content validated against "+successCount+" schemas.");
-                }
+                aggregatedErrorMessages.add("[0,0][] Only one schema should be valid. Instead the content validated against "+successCount+" schemas.");
             }
         } else {
             // Any of the schemas should validate successfully.
@@ -132,7 +128,7 @@ public class JSONValidator {
             throw new ValidatorException("Error while parsing JSON schema: "+e.getMessage(), e);
         }
         List<String> errorMessages = new ArrayList<>();
-        ProblemHandler handler = service.createProblemPrinterBuilder(errorMessages::add).withLocation(!locationAsPointer).build();
+        ProblemHandler handler = service.createProblemPrinterBuilder(errorMessages::add).withLocation(true).build();
         try (JsonParser parser = service.createParser(inputFileToValidate.toPath(), schema, handler)) {
             while (parser.hasNext()) {
                 parser.next();
@@ -195,32 +191,34 @@ public class JSONValidator {
             report.getCounters().setNrOfErrors(BigInteger.valueOf(errorMessages.size()));
             for (String errorMessage: errorMessages) {
                 BAR error = new BAR();
-                String location = null;
+                String locationPointer = null;
+                String locationLineColumn = null;
                 String message = null;
-                if (locationAsPointer) {
-                    // Messages are of the form "[POINTER] MESSAGE".
-                    int closingBracketPosition = errorMessage.indexOf(']');
-                    if (closingBracketPosition > 0 && closingBracketPosition < errorMessage.length()) {
-                        location = errorMessage.substring(1, closingBracketPosition);
-                        message = errorMessage.substring(closingBracketPosition + 1);
-                    } else {
-                        message = errorMessage;
+                // Messages are of the form "[LINE,COL][POINTER] MESSAGE".
+                if (errorMessage.startsWith("[")) {
+                    int firstClosingBracketPosition = errorMessage.indexOf(']');
+                    if (firstClosingBracketPosition > 0) {
+                        locationLineColumn = errorMessage.substring(1, firstClosingBracketPosition);
+                        int finalClosingBracketPosition = errorMessage.indexOf(']', firstClosingBracketPosition+1);
+                        if (finalClosingBracketPosition <= 0) {
+                            finalClosingBracketPosition = firstClosingBracketPosition;
+                        } else {
+                            locationPointer = errorMessage.substring(firstClosingBracketPosition+2, finalClosingBracketPosition);
+                        }
+                        message = errorMessage.substring(finalClosingBracketPosition+1).trim();
                     }
+                }
+                String locationToSetInReport = null;
+                if (locationAsPointer) {
+                    locationToSetInReport = locationPointer;
                 } else {
-                    // Messages are of the form "[LINE,COL][POINTER] MESSAGE".
-                    if (errorMessage.startsWith("[")) {
-                        int firstClosingBracketPosition = errorMessage.indexOf(']');
-                        if (firstClosingBracketPosition > 0) {
-                            String locationPart = errorMessage.substring(1, firstClosingBracketPosition);
-                            String[] locationParts = StringUtils.split(locationPart, ',');
-                            if (locationParts.length > 0) {
-                                location = ValidationConstants.INPUT_CONTENT+":"+locationParts[0]+":"+locationParts[1];
-                            }
-                            int finalClosingBracketPosition = errorMessage.indexOf(']', firstClosingBracketPosition+1);
-                            if (finalClosingBracketPosition <= 0) {
-                                finalClosingBracketPosition = firstClosingBracketPosition;
-                            }
-                            message = errorMessage.substring(finalClosingBracketPosition+1);
+                    String[] locationLineColumnParts = StringUtils.split(locationLineColumn, ',');
+                    if (locationLineColumnParts != null && locationLineColumnParts.length > 0) {
+                        locationToSetInReport = ValidationConstants.INPUT_CONTENT+":"+locationLineColumnParts[0]+":"+locationLineColumnParts[1];
+                    }
+                    if (message != null) {
+                        if (StringUtils.isNotBlank(locationPointer)) {
+                            message = "["+locationPointer+"] " + message;
                         }
                     }
                 }
@@ -228,7 +226,7 @@ public class JSONValidator {
                     message = errorMessage;
                 }
                 error.setDescription(message.trim());
-                error.setLocation(location);
+                error.setLocation(locationToSetInReport);
                 report.getReports().getInfoOrWarningOrError().add(objectFactory.createTestAssertionGroupReportsTypeError(error));
             }
         }
