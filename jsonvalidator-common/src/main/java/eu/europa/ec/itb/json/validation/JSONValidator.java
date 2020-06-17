@@ -8,8 +8,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import eu.europa.ec.itb.json.DomainConfig;
-import eu.europa.ec.itb.json.errors.ValidatorException;
-import eu.europa.ec.itb.json.utils.Utils;
+import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.Utils;
+import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
+import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import jakarta.json.stream.JsonParser;
 import jakarta.json.stream.JsonParsingException;
 import org.apache.commons.io.FileUtils;
@@ -43,9 +45,9 @@ public class JSONValidator {
     private final boolean locationAsPointer;
     private String validationType;
     private List<FileInfo> externalSchemaFileInfo;
-    private final SchemaCombinationApproach externalSchemaCombinationApproach;
+    private final ValidationArtifactCombinationApproach externalSchemaCombinationApproach;
 
-    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, SchemaCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer) {
+    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer) {
         this.inputFileToValidate = inputFileToValidate;
         this.validationType = validationType;
         this.domainConfig = domainConfig;
@@ -81,14 +83,14 @@ public class JSONValidator {
         }
     }
 
-    private List<String> validateAgainstSetOfSchemas(List<FileInfo> schemaFileInfos, SchemaCombinationApproach combinationApproach) {
+    private List<String> validateAgainstSetOfSchemas(List<FileInfo> schemaFileInfos, ValidationArtifactCombinationApproach combinationApproach) {
         List<String> aggregatedErrorMessages = new ArrayList<>();
-        if (combinationApproach == SchemaCombinationApproach.allOf) {
+        if (combinationApproach == ValidationArtifactCombinationApproach.ALL) {
             // All schema validations must result in success.
             for (FileInfo fileInfo: schemaFileInfos) {
                 aggregatedErrorMessages.addAll(validateAgainstSchema(fileInfo.getFile()));
             }
-        } else if (combinationApproach == SchemaCombinationApproach.oneOf) {
+        } else if (combinationApproach == ValidationArtifactCombinationApproach.ONE_OF) {
             // All schemas need to be validated but only one should validate successfully.
             int successCount = 0;
             for (FileInfo fileInfo: schemaFileInfos) {
@@ -139,7 +141,7 @@ public class JSONValidator {
 
     private TAR validateInternal() {
         TAR report;
-        List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredSchemaFileInfos(domainConfig, validationType);
+        List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredValidationArtifacts(domainConfig, validationType);
         if (preconfiguredSchemaFiles.isEmpty() && externalSchemaFileInfo.isEmpty()) {
             // No preconfigured nor user-provided schemas defined.
             throw new ValidatorException("No schemas are defined for the validation.");
@@ -148,7 +150,7 @@ public class JSONValidator {
             inputFileToValidate = prettyPrint(inputFileToValidate);
             List<String> aggregatedErrorMessages = new ArrayList<>();
             if (!preconfiguredSchemaFiles.isEmpty()) {
-                SchemaCombinationApproach combinationApproach = domainConfig.getSchemaFile().get(validationType).getSchemaCombinationApproach();
+                ValidationArtifactCombinationApproach combinationApproach = domainConfig.getSchemaInfo(validationType).getArtifactCombinationApproach();
                 aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(preconfiguredSchemaFiles, combinationApproach));
             }
             if (!externalSchemaFileInfo.isEmpty()) {
