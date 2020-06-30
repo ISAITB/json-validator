@@ -2,7 +2,7 @@ package eu.europa.ec.itb.json.gitb;
 
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.DomainConfigCache;
-import eu.europa.ec.itb.json.ValidatorChannel;
+import eu.europa.ec.itb.validation.commons.ValidatorChannel;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.transport.servlet.CXFServlet;
