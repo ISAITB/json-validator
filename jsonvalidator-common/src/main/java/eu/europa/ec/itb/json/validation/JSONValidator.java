@@ -176,11 +176,7 @@ public class JSONValidator {
 
     private TAR createReport(List<String> errorMessages) {
         TAR report = new TAR();
-        try {
-            report.setDate(Utils.getXMLGregorianCalendarDateTime());
-        } catch (DatatypeConfigurationException e) {
-            throw new IllegalStateException("Exception while creating XMLGregorianCalendar", e);
-        }
+        report.setDate(Utils.getXMLGregorianCalendarDateTime());
         report.setCounters(new ValidationCounters());
         report.getCounters().setNrOfWarnings(BigInteger.ZERO);
         report.getCounters().setNrOfAssertions(BigInteger.ZERO);
