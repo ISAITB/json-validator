@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
+import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.Utils;
@@ -20,7 +21,6 @@ import eu.europa.ec.itb.validation.plugin.ValidationPlugin;
 import jakarta.json.stream.JsonParser;
 import jakarta.json.stream.JsonParsingException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.ProblemHandler;
@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +52,8 @@ public class JSONValidator {
     private PluginManager pluginManager = null;
     @Autowired
     private DomainPluginConfigProvider pluginConfigProvider = null;
+    @Autowired
+    private ApplicationConfig appConfig = null;
 
     private ObjectFactory objectFactory = new ObjectFactory();
     private File inputFileToValidate;
@@ -146,7 +149,7 @@ public class JSONValidator {
     }
 
     private List<String> validateAgainstSetOfSchemas(List<FileInfo> schemaFileInfos, ValidationArtifactCombinationApproach combinationApproach) {
-        List<String> aggregatedErrorMessages = new ArrayList<>();
+        LinkedList<String> aggregatedErrorMessages = new LinkedList<>();
         if (combinationApproach == ValidationArtifactCombinationApproach.ALL) {
             // All schema validations must result in success.
             for (FileInfo fileInfo: schemaFileInfos) {
@@ -155,32 +158,51 @@ public class JSONValidator {
         } else if (combinationApproach == ValidationArtifactCombinationApproach.ONE_OF) {
             // All schemas need to be validated but only one should validate successfully.
             int successCount = 0;
+            int branchCounter = 1;
             for (FileInfo fileInfo: schemaFileInfos) {
                 List<String> latestErrors = validateAgainstSchema(fileInfo.getFile());
                 if (latestErrors.isEmpty()) {
                     successCount += 1;
                 } else {
-                    aggregatedErrorMessages.addAll(latestErrors);
+                    addBranchErrors(aggregatedErrorMessages, latestErrors, branchCounter++);
                 }
             }
-            if (successCount == 1) {
+            if (successCount == 0) {
+                aggregatedErrorMessages.addFirst(appConfig.getBranchErrorMessages().get("oneOf"));
+            } else if (successCount == 1) {
                 aggregatedErrorMessages.clear();
             } else if (successCount > 1) {
-                aggregatedErrorMessages.add("[0,0][] Only one schema should be valid. Instead the content validated against "+successCount+" schemas.");
+                aggregatedErrorMessages.add("Only one schema should be valid. Instead the content validated against "+successCount+" schemas.");
             }
         } else {
             // Any of the schemas should validate successfully.
+            int branchCounter = 1;
             for (FileInfo fileInfo: schemaFileInfos) {
                 List<String> latestErrors = validateAgainstSchema(fileInfo.getFile());
                 if (latestErrors.isEmpty()) {
                     aggregatedErrorMessages.clear();
                     break;
                 } else {
-                    aggregatedErrorMessages.addAll(latestErrors);
+                    addBranchErrors(aggregatedErrorMessages, latestErrors, branchCounter++);
                 }
+            }
+            if (!aggregatedErrorMessages.isEmpty()) {
+                aggregatedErrorMessages.addFirst(appConfig.getBranchErrorMessages().get("anyOf"));
             }
         }
         return aggregatedErrorMessages;
+    }
+
+    private void addBranchErrors(List<String> aggregatedErrorMessages, List<String> branchMessages, int branchCounter) {
+        boolean firstForBranch = true;
+        for (String error: branchMessages) {
+            if (firstForBranch) {
+                aggregatedErrorMessages.add(branchCounter+") "+error);
+                firstForBranch = false;
+            } else {
+                aggregatedErrorMessages.add("   "+error);
+            }
+        }
     }
 
     private List<String> validateAgainstSchema(File schemaFile) {
@@ -214,7 +236,7 @@ public class JSONValidator {
             // We apply "allOf" semantics when there are both preconfigured and external schemas.
             aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach));
         }
-        TAR report = createReport(aggregatedErrorMessages);
+        TAR report = createReport(ErrorMessage.processMessages(aggregatedErrorMessages, appConfig.getBranchErrorMessageValues()));
         report.setContext(new AnyContent());
         report.getContext().setType("map");
         AnyContent inputReportContent = new AnyContent();
@@ -230,7 +252,7 @@ public class JSONValidator {
         return report;
     }
 
-    private TAR createReport(List<String> errorMessages) {
+    private TAR createReport(List<ErrorMessage> errorMessages) {
         TAR report = new TAR();
         report.setDate(Utils.getXMLGregorianCalendarDateTime());
         report.setCounters(new ValidationCounters());
@@ -243,44 +265,14 @@ public class JSONValidator {
         } else {
             report.setResult(TestResultType.FAILURE);
             report.getCounters().setNrOfErrors(BigInteger.valueOf(errorMessages.size()));
-            for (String errorMessage: errorMessages) {
+            for (ErrorMessage errorMessage: errorMessages) {
                 BAR error = new BAR();
-                String locationPointer = null;
-                String locationLineColumn = null;
-                String message = null;
-                // Messages are of the form "[LINE,COL][POINTER] MESSAGE".
-                if (errorMessage.startsWith("[")) {
-                    int firstClosingBracketPosition = errorMessage.indexOf(']');
-                    if (firstClosingBracketPosition > 0) {
-                        locationLineColumn = errorMessage.substring(1, firstClosingBracketPosition);
-                        int finalClosingBracketPosition = errorMessage.indexOf(']', firstClosingBracketPosition+1);
-                        if (finalClosingBracketPosition <= 0) {
-                            finalClosingBracketPosition = firstClosingBracketPosition;
-                        } else {
-                            locationPointer = errorMessage.substring(firstClosingBracketPosition+2, finalClosingBracketPosition);
-                        }
-                        message = errorMessage.substring(finalClosingBracketPosition+1).trim();
-                    }
-                }
-                String locationToSetInReport = null;
+                error.setDescription(errorMessage.getMessage());
                 if (locationAsPointer) {
-                    locationToSetInReport = locationPointer;
+                    error.setLocation(errorMessage.getLocationPointer());
                 } else {
-                    String[] locationLineColumnParts = StringUtils.split(locationLineColumn, ',');
-                    if (locationLineColumnParts != null && locationLineColumnParts.length > 0) {
-                        locationToSetInReport = ValidationConstants.INPUT_CONTENT+":"+locationLineColumnParts[0]+":"+locationLineColumnParts[1];
-                    }
-                    if (message != null) {
-                        if (StringUtils.isNotBlank(locationPointer)) {
-                            message = "["+locationPointer+"] " + message;
-                        }
-                    }
+                    error.setLocation(ValidationConstants.INPUT_CONTENT+":"+errorMessage.getLocationLine()+":"+errorMessage.getLocationColumn());
                 }
-                if (message == null) {
-                    message = errorMessage;
-                }
-                error.setDescription(message.trim());
-                error.setLocation(locationToSetInReport);
                 report.getReports().getInfoOrWarningOrError().add(objectFactory.createTestAssertionGroupReportsTypeError(error));
             }
         }

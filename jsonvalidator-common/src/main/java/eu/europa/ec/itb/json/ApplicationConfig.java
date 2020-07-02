@@ -5,8 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +27,20 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
     private String defaultExternalSchemaCombinationApproachDescription;
     private String defaultValidationTypeDescription;
     private String defaultLocationAsPointerDescription;
+    private Map<String, String> branchErrorMessages;
+    private Set<String> branchErrorMessageValues;
+
+    public Set<String> getBranchErrorMessageValues() {
+        return branchErrorMessageValues;
+    }
+
+    public Map<String, String> getBranchErrorMessages() {
+        return branchErrorMessages;
+    }
+
+    public void setBranchErrorMessages(Map<String, String> branchErrorMessages) {
+        this.branchErrorMessages = branchErrorMessages;
+    }
 
     public Set<String> getAcceptedMimeTypes() {
         return acceptedMimeTypes;
@@ -106,6 +120,8 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
         defaultLabels.put(ValidationConstants.INPUT_VALIDATION_TYPE, defaultValidationTypeDescription);
         defaultLabels.put(ValidationConstants.INPUT_LOCATION_AS_POINTER, defaultLocationAsPointerDescription);
         defaultLabels.put(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, defaultExternalSchemaCombinationApproachDescription);
+        // Branch error messages.
+        branchErrorMessageValues = new HashSet<>(getBranchErrorMessages().values());
     }
 
 }
