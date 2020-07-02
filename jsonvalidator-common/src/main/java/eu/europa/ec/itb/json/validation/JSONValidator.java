@@ -3,6 +3,8 @@ package eu.europa.ec.itb.json.validation;
 import com.gitb.core.AnyContent;
 import com.gitb.core.ValueEmbeddingEnumeration;
 import com.gitb.tr.*;
+import com.gitb.vs.ValidateRequest;
+import com.gitb.vs.ValidationResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -11,7 +13,10 @@ import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.Utils;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
+import eu.europa.ec.itb.validation.commons.config.DomainPluginConfigProvider;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
+import eu.europa.ec.itb.validation.plugin.PluginManager;
+import eu.europa.ec.itb.validation.plugin.ValidationPlugin;
 import jakarta.json.stream.JsonParser;
 import jakarta.json.stream.JsonParsingException;
 import org.apache.commons.io.FileUtils;
@@ -19,11 +24,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.ProblemHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.DatatypeConfigurationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -31,13 +37,20 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @Scope("prototype")
 public class JSONValidator {
 
+    private static final Logger LOG = LoggerFactory.getLogger(JSONValidator.class);
+
     @Autowired
     private FileManager fileManager = null;
+    @Autowired
+    private PluginManager pluginManager = null;
+    @Autowired
+    private DomainPluginConfigProvider pluginConfigProvider = null;
 
     private ObjectFactory objectFactory = new ObjectFactory();
     private File inputFileToValidate;
@@ -60,12 +73,61 @@ public class JSONValidator {
     }
 
     public TAR validate() {
+        TAR validationResult;
         try {
             fileManager.signalValidationStart(domainConfig.getDomainName());
-            return validateInternal();
+            validationResult = validateInternal();
         } finally {
             fileManager.signalValidationEnd(domainConfig.getDomainName());
         }
+        TAR pluginResult = validateAgainstPlugins();
+        if (pluginResult != null) {
+            validationResult = Utils.mergeReports(new TAR[] {validationResult, pluginResult});
+        }
+        return validationResult;
+    }
+
+    private TAR validateAgainstPlugins() {
+        TAR pluginReport = null;
+        ValidationPlugin[] plugins = pluginManager.getPlugins(pluginConfigProvider.getPluginClassifier(domainConfig, validationType));
+        if (plugins != null && plugins.length > 0) {
+            File pluginTmpFolder = new File(inputFileToValidate.getParentFile(), UUID.randomUUID().toString());
+            try {
+                pluginTmpFolder.mkdirs();
+                ValidateRequest pluginInput = preparePluginInput(pluginTmpFolder);
+                for (ValidationPlugin plugin: plugins) {
+                    String pluginName = plugin.getName();
+                    ValidationResponse response = plugin.validate(pluginInput);
+                    if (response != null && response.getReport() != null && response.getReport().getReports() != null) {
+                        LOG.info("Plugin [{}] produced [{}] report item(s).", pluginName, response.getReport().getReports().getInfoOrWarningOrError().size());
+                        if (pluginReport == null) {
+                            pluginReport = response.getReport();
+                        } else {
+                            pluginReport = Utils.mergeReports(new TAR[] {pluginReport, response.getReport()});
+                        }
+                    }
+                }
+            } finally {
+                // Cleanup plugin tmp folder.
+                FileUtils.deleteQuietly(pluginTmpFolder);
+            }
+        }
+        return pluginReport;
+    }
+
+    private ValidateRequest preparePluginInput(File pluginTmpFolder) {
+        File pluginInputFile = new File(pluginTmpFolder, UUID.randomUUID().toString()+".json");
+        try {
+            FileUtils.copyFile(inputFileToValidate, pluginInputFile);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to copy input file for plugin", e);
+        }
+        ValidateRequest request = new ValidateRequest();
+        request.getInput().add(Utils.createInputItem("contentToValidate", pluginInputFile.getAbsolutePath()));
+        request.getInput().add(Utils.createInputItem("domain", domainConfig.getDomainName()));
+        request.getInput().add(Utils.createInputItem("validationType", validationType));
+        request.getInput().add(Utils.createInputItem("tempFolder", pluginTmpFolder.getAbsolutePath()));
+        return request;
     }
 
     private File prettyPrint(File input) {
@@ -123,7 +185,7 @@ public class JSONValidator {
 
     private List<String> validateAgainstSchema(File schemaFile) {
         JsonValidationService service = JsonValidationService.newInstance();
-        JsonSchema schema = null;
+        JsonSchema schema;
         try {
             schema = service.readSchema(schemaFile.toPath());
         } catch (JsonParsingException e) {
@@ -140,37 +202,31 @@ public class JSONValidator {
     }
 
     private TAR validateInternal() {
-        TAR report;
+        // Pretty-print input to get good location results.
+        inputFileToValidate = prettyPrint(inputFileToValidate);
+        List<String> aggregatedErrorMessages = new ArrayList<>();
         List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredValidationArtifacts(domainConfig, validationType);
-        if (preconfiguredSchemaFiles.isEmpty() && externalSchemaFileInfo.isEmpty()) {
-            // No preconfigured nor user-provided schemas defined.
-            throw new ValidatorException("No schemas are defined for the validation.");
-        } else {
-            // Pretty-print input to get good location results.
-            inputFileToValidate = prettyPrint(inputFileToValidate);
-            List<String> aggregatedErrorMessages = new ArrayList<>();
-            if (!preconfiguredSchemaFiles.isEmpty()) {
-                ValidationArtifactCombinationApproach combinationApproach = domainConfig.getSchemaInfo(validationType).getArtifactCombinationApproach();
-                aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(preconfiguredSchemaFiles, combinationApproach));
-            }
-            if (!externalSchemaFileInfo.isEmpty()) {
-                // We apply "allOf" semantics when there are both preconfigured and external schemas.
-                aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach));
-            }
-            report = createReport(aggregatedErrorMessages);
-            report.setContext(new AnyContent());
-            report.getContext().setType("map");
-            AnyContent inputReportContent = new AnyContent();
-            inputReportContent.setType("string");
-            inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
-            inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
-            try {
-                inputReportContent.setValue(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to generate output report", e);
-            }
-            report.getContext().getItem().add(inputReportContent);
+        if (!preconfiguredSchemaFiles.isEmpty()) {
+            ValidationArtifactCombinationApproach combinationApproach = domainConfig.getSchemaInfo(validationType).getArtifactCombinationApproach();
+            aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(preconfiguredSchemaFiles, combinationApproach));
         }
+        if (!externalSchemaFileInfo.isEmpty()) {
+            // We apply "allOf" semantics when there are both preconfigured and external schemas.
+            aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach));
+        }
+        TAR report = createReport(aggregatedErrorMessages);
+        report.setContext(new AnyContent());
+        report.getContext().setType("map");
+        AnyContent inputReportContent = new AnyContent();
+        inputReportContent.setType("string");
+        inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
+        inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
+        try {
+            inputReportContent.setValue(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to generate output report", e);
+        }
+        report.getContext().getItem().add(inputReportContent);
         return report;
     }
 
