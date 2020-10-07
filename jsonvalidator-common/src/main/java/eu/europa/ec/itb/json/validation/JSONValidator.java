@@ -54,6 +54,8 @@ public class JSONValidator {
     private DomainPluginConfigProvider pluginConfigProvider = null;
     @Autowired
     private ApplicationConfig appConfig = null;
+    @Autowired
+    private JsonValidationService jsonValidationService = null;
 
     private ObjectFactory objectFactory = new ObjectFactory();
     private File inputFileToValidate;
@@ -206,16 +208,15 @@ public class JSONValidator {
     }
 
     private List<String> validateAgainstSchema(File schemaFile) {
-        JsonValidationService service = JsonValidationService.newInstance();
         JsonSchema schema;
         try {
-            schema = service.readSchema(schemaFile.toPath());
+            schema = jsonValidationService.readSchema(schemaFile.toPath());
         } catch (JsonParsingException e) {
             throw new ValidatorException("Error while parsing JSON schema: "+e.getMessage(), e);
         }
         List<String> errorMessages = new ArrayList<>();
-        ProblemHandler handler = service.createProblemPrinterBuilder(errorMessages::add).withLocation(true).build();
-        try (JsonParser parser = service.createParser(inputFileToValidate.toPath(), schema, handler)) {
+        ProblemHandler handler = jsonValidationService.createProblemPrinterBuilder(errorMessages::add).withLocation(true).build();
+        try (JsonParser parser = jsonValidationService.createParser(inputFileToValidate.toPath(), schema, handler)) {
             while (parser.hasNext()) {
                 parser.next();
             }
