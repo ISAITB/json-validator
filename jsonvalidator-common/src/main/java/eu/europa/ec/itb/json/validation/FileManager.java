@@ -3,6 +3,7 @@ package eu.europa.ec.itb.json.validation;
 import com.gitb.tr.TAR;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.validation.commons.BaseFileManager;
+import eu.europa.ec.itb.validation.commons.config.DomainConfig;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
@@ -48,9 +49,9 @@ public class FileManager extends BaseFileManager<ApplicationConfig> {
 		return "TAR-"+uuid+".xml";
 	}
 
-	public void saveReport(TAR report, String xmlID) {
+	public <R extends DomainConfig> void saveReport(TAR report, String xmlID, R domainConfig) {
 		File outputFile = new File(getReportFolder(), getReportFileNameXml(xmlID));
-		saveReport(report, outputFile);
+		saveReport(report, outputFile, domainConfig);
 	}
 
 }
