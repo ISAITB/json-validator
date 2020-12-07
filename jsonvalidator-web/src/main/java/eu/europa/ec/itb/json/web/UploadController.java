@@ -155,7 +155,7 @@ public class UploadController {
 					try {
 						String inputID = fileManager.writeJson(config.getDomainName(), report.getContext().getItem().get(0).getValue());
 						attributes.put("inputID", inputID);
-						fileManager.saveReport(report, inputID);
+						fileManager.saveReport(report, inputID, config);
 					} catch (IOException e) {
 						logger.error("Error generating detailed report [" + e.getMessage() + "]", e);
 						attributes.put("message", "Error generating detailed report: " + e.getMessage());
