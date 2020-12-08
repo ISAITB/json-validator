@@ -11,5 +11,8 @@
 
     <artifactId>jsonvalidator-resources</artifactId>
 
+    <build>
+        <finalName>validator-resources</finalName>
+    </build>
 
 </project>
