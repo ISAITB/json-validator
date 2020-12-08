@@ -19,6 +19,7 @@
         <module>jsonvalidator-resources</module>
         <module>jsonvalidator-web</module>
         <module>jsonvalidator-war</module>
+        <module>jsonvalidator-jar</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -91,6 +92,11 @@
             <dependency>
                 <groupId>eu.europa.ec.itb.commons</groupId>
                 <artifactId>validation-commons</artifactId>
+                <version>${version.itbCommons}</version>
+            </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.itb.commons</groupId>
+                <artifactId>validation-commons-report</artifactId>
                 <version>${version.itbCommons}</version>
             </dependency>
             <dependency>

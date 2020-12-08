@@ -1,5 +1,7 @@
 package eu.europa.ec.itb.json;
 
+import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
+import eu.europa.ec.itb.validation.commons.artifact.TypedValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.config.LabelConfig;
 import eu.europa.ec.itb.validation.commons.config.WebDomainConfig;
@@ -13,6 +15,15 @@ public class DomainConfig extends WebDomainConfig<DomainConfig.Label> {
 
     public ValidationArtifactInfo getSchemaInfo(String validationType) {
         return getArtifactInfo().get(validationType).get();
+    }
+
+    public boolean definesTypeWithExternalSchemas() {
+        for (TypedValidationArtifactInfo info : getArtifactInfo().values()) {
+            if (info.get().getExternalArtifactSupport() != ExternalArtifactSupport.NONE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static class Label extends LabelConfig {
