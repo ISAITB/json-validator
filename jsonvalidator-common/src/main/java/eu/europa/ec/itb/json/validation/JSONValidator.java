@@ -77,6 +77,14 @@ public class JSONValidator {
         }
     }
 
+    public String getDomain() {
+        return this.domainConfig.getDomain();
+    }
+
+    public String getValidationType() { 
+        return this.validationType;
+    }
+
     public TAR validate() {
         TAR validationResult;
         try {
