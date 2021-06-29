@@ -42,6 +42,7 @@
         <version.gson>2.8.6</version.gson>
         <version.tika>1.24.1</version.tika>
         <version.hibernateValidator>5.0.2.Final</version.hibernateValidator>
+        <version.aspectjWeaver>1.9.6</version.aspectjWeaver>
     </properties>
 
     <repositories>
@@ -200,6 +201,11 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>${version.hibernateValidator}</version>
+            </dependency>
+            <dependency>
+            	<groupId>org.aspectj</groupId>
+            	<artifactId>aspectjweaver</artifactId>
+            	<version>${version.aspectjWeaver}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
