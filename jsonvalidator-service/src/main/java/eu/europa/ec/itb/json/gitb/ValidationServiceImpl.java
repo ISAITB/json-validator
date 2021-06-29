@@ -23,7 +23,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import javax.jws.WebParam;
+import javax.xml.ws.WebServiceContext;
+
 import java.io.File;
 import java.util.List;
 
@@ -44,6 +47,8 @@ public class ValidationServiceImpl implements ValidationService {
     private FileManager fileManager = null;
     @Autowired
     private InputHelper inputHelper = null;
+    @Resource
+    private WebServiceContext wsContext;
 
     public ValidationServiceImpl(DomainConfig domainConfig) {
         this.domainConfig = domainConfig;
@@ -149,5 +154,9 @@ public class ValidationServiceImpl implements ValidationService {
             return Boolean.parseBoolean(inputs.get(0).getValue());
         }
     }
+
+    public WebServiceContext getWebServiceContext() {
+        return this.wsContext;
+    }    
 
 }
