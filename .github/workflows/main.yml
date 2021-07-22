@@ -30,7 +30,6 @@ jobs:
           jacoco-csv-file: >
             jsonvalidator-common/target/site/jacoco/jacoco.csv
             jsonvalidator-jar/target/site/jacoco/jacoco.csv
-            jsonvalidator-resources/target/site/jacoco/jacoco.csv
             jsonvalidator-service/target/site/jacoco/jacoco.csv
             jsonvalidator-web/target/site/jacoco/jacoco.csv
             jsonvalidator-war/target/site/jacoco/jacoco.csv
