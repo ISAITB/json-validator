@@ -3,16 +3,19 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>eu.europa.ec.itb.json</groupId>
     <artifactId>jsonvalidator</artifactId>
     <packaging>pom</packaging>
     <version>1.1.0-SNAPSHOT</version>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Web and command-line application for the validation of JSON data.</description>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.3.3.RELEASE</version>
     </parent>
+
     <modules>
         <module>jsonvalidator-common</module>
         <module>jsonvalidator-service</module>
@@ -21,6 +24,23 @@
         <module>jsonvalidator-war</module>
         <module>jsonvalidator-jar</module>
     </modules>
+
+    <licenses>
+        <license>
+            <name>European Union Public Licence (EUPL) Version 1.2</name>
+            <url>https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>European Commission, DIGIT, ISA2 Unit</name>
+            <email>DIGIT-ITB@ec.europa.eu</email>
+            <organization>European Commission</organization>
+            <organizationUrl>https://ec.europa.eu/isa2/</organizationUrl>
+        </developer>
+    </developers>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <validatorTimestamp>${maven.build.timestamp}</validatorTimestamp>
