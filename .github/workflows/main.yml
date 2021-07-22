@@ -20,8 +20,32 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-|
+      - name: Generate Maven settings
+        uses: whelk-io/maven-settings-xml-action@v18
+        with:
+          servers: >
+            [
+              {
+                "id": "itbRepoRead",
+                "username": "${{ secrets.ITB_MVN_REPO_USER }}",
+                "password": "${{ secrets.ITB_MVN_REPO_PASS }}"
+              }
+            ]
+          profiles: >
+            [
+              {
+                "id": "itbRepoRead",
+                "properties": {
+                  "itbRepoReadUrl": "${{ secrets.ITB_MVN_REPO_URL }}"
+                }
+              }
+            ]
+          active_profiles: >
+            [
+              "itbRepoRead"
+            ]
       - name: Build with Maven
-        run: mvn -B test --file pom.xml
+        run: mvn -B package --file pom.xml
       - name: Generate coverage badge
         id: jacoco
         uses: cicirello/jacoco-badge-generator@v2.3.0
