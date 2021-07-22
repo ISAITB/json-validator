@@ -4,8 +4,8 @@ import java.io.File;
 
 public class ValidationInput {
 
-    private File inputFile;
-    private String fileName;
+    private final File inputFile;
+    private final String fileName;
 
     public ValidationInput(File inputFile, String fileName) {
         this.inputFile = inputFile;

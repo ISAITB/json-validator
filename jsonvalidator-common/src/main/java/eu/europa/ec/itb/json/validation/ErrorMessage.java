@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * DTO to capture the information of a single error.
+ */
 public class ErrorMessage {
 
     private String message;
@@ -16,6 +19,13 @@ public class ErrorMessage {
     private String locationPointer;
     private boolean inSet = false;
 
+    /**
+     * Process the provided raised messages and transform them to a list of DTOs.
+     *
+     * @param errorMessages The error messages.
+     * @param branchMessages The messages linked to different validation  branches.
+     * @return The error message DTOs to process.
+     */
     public static List<ErrorMessage> processMessages(List<String> errorMessages, Set<String> branchMessages) {
         List<ErrorMessage> processedMessages = new ArrayList<>(errorMessages.size());
         Iterator<String> msgIterator = errorMessages.iterator();
@@ -49,6 +59,12 @@ public class ErrorMessage {
         return processedMessages;
     }
 
+    /**
+     * Extract a DTO representation of a string-based error message.
+     *
+     * @param errorMessage The error message text.
+     * @return The DTO.
+     */
     public static ErrorMessage processMessage(String errorMessage) {
         ErrorMessage msgObj = new ErrorMessage();
         /* Messages can be of the form:
@@ -108,50 +124,86 @@ public class ErrorMessage {
         return msgObj;
     }
 
+    /**
+     * @param message The message.
+     */
     public void setMessage(String message) {
         this.message = message;
     }
 
+    /**
+     * @param branch The validation branch.
+     */
     public void setBranch(String branch) {
         this.branch = branch;
     }
 
+    /**
+     * @param locationLine The message's line.
+     */
     public void setLocationLine(Integer locationLine) {
         this.locationLine = locationLine;
     }
 
+    /**
+     * @param locationColumn The message's column.
+     */
     public void setLocationColumn(Integer locationColumn) {
         this.locationColumn = locationColumn;
     }
 
+    /**
+     * @param locationPointer The JSON pointer string for the message.
+     */
     public void setLocationPointer(String locationPointer) {
         this.locationPointer = locationPointer;
     }
 
+    /**
+     * @return The message.
+     */
     public String getMessage() {
         return message;
     }
 
+    /**
+     * @return The validation branch.
+     */
     public String getBranch() {
         return branch;
     }
 
+    /**
+     * @return The message's location line.
+     */
     public Integer getLocationLine() {
         return locationLine;
     }
 
+    /**
+     * @return The message's location oclumn.
+     */
     public Integer getLocationColumn() {
         return locationColumn;
     }
 
+    /**
+     * @return The JSON pointer text for the message's location.
+     */
     public String getLocationPointer() {
         return locationPointer;
     }
 
+    /**
+     * @return True if the error is in a set of branch errors.
+     */
     public boolean isInSet() {
         return inSet;
     }
 
+    /**
+     * @param inSet True if the error is in a set of branch errors.
+     */
     public void setInSet(boolean inSet) {
         this.inSet = inSet;
     }

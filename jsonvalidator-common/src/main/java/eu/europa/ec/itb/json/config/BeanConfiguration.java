@@ -5,14 +5,27 @@ import org.leadpony.justify.api.JsonValidationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configure common spring beans.
+ */
 @Configuration
 public class BeanConfiguration {
 
+    /**
+     * Support the definition of plugins.
+     *
+     * @return The default plugin provider..
+     */
     @Bean
     public DomainPluginConfigProvider pluginConfigProvider() {
         return new DomainPluginConfigProvider();
     }
 
+    /**
+     * Define the internal service used to validate JSON data.
+     *
+     * @return The validation service.
+     */
     @Bean
     public JsonValidationService jsonValidationService() {
         return JsonValidationService.newInstance();

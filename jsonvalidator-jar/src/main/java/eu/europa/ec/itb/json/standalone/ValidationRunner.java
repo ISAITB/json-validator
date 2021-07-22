@@ -28,6 +28,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Component that handles the actual triggering of validation and resulting reporting.
+ */
 @Component
 @Scope("prototype")
 public class ValidationRunner {
@@ -54,6 +57,9 @@ public class ValidationRunner {
     @Autowired
     private ReportGeneratorBean reportGenerator;
 
+    /**
+     * Initialisation method to determine the if the domain configurations are well-defined.
+     */
     @PostConstruct
     public void init() {
         // Determine the domain configuration.
@@ -79,6 +85,12 @@ public class ValidationRunner {
         }
     }
 
+    /**
+     * Run the validation.
+     *
+     * @param args The command-line arguments.
+     * @param parentFolder The temporary folder to use for this validator's run.
+     */
     protected void bootstrap(String[] args, File parentFolder) {
         // Process input arguments
         try {
@@ -190,6 +202,13 @@ public class ValidationRunner {
         }
     }
 
+    /**
+     * Get the input argument for the provided counter.
+     *
+     * @param args All command-line inputs.
+     * @param argCounter The index of the argument to look for.
+     * @return The argument value.
+     */
     private String argumentAsString(String[] args, int argCounter) {
         if (args.length > argCounter + 1) {
             return args[++argCounter];
@@ -197,6 +216,14 @@ public class ValidationRunner {
         return null;
     }
 
+    /**
+     * Get the JSON content to validate based ont he provided path (can be a URL or file reference).
+     *
+     * @param contentPath The path to process.
+     * @param parentFolder The validation run's temporary folder.
+     * @return The file with the JSON content to use for the validation.
+     * @throws IOException If an IO error occurs.
+     */
     private File getContent(String contentPath, File parentFolder) throws IOException {
         File fileToUse;
         if (isValidURL(contentPath)) {
@@ -219,6 +246,12 @@ public class ValidationRunner {
         return fileToUse;
     }
 
+    /**
+     * Check to see if the provided value is a valid URL.
+     *
+     * @param value The value.
+     * @return The check result.
+     */
     private boolean isValidURL(String value) {
         try {
             new URL(value);
@@ -228,6 +261,11 @@ public class ValidationRunner {
         }
     }
 
+    /**
+     * Pront the usage string for the validator.
+     *
+     * @param requireType True if the validation type should be included in the message.
+     */
     private void printUsage(boolean requireType) {
         StringBuilder usageMessage = new StringBuilder();
         StringBuilder parametersMessage = new StringBuilder();

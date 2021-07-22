@@ -38,15 +38,13 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
- * Created by simatosc on 14/05/2020.
+ * Controller to manage the validator's web user interface.
  */
 @Controller
 public class UploadController {
 
-    private static Logger logger = LoggerFactory.getLogger(UploadController.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
     public static final String IS_MINIMAL = "isMinimal";
-
     private static final String contentType_file     	= "fileType" ;
     private static final String contentType_uri     		= "uriType" ;
     private static final String contentType_string     	= "stringType" ;
@@ -63,6 +61,14 @@ public class UploadController {
     @Autowired
 	private ApplicationConfig appConfig = null;
 
+	/**
+	 * Prepare the upload page.
+	 *
+	 * @param domain The domain name.
+	 * @param model The UI model.
+	 * @param request The received request.
+	 * @return The model and view information.
+	 */
     @RequestMapping(method = RequestMethod.GET, value = "/{domain}/upload")
     public ModelAndView upload(@PathVariable("domain") String domain, Model model, HttpServletRequest request) {
     	setMinimalUIFlag(request, false);
@@ -79,6 +85,23 @@ public class UploadController {
         return new ModelAndView("uploadForm", attributes);
     }
 
+	/**
+	 * Handle the upload form's submission.
+	 *
+	 * @param domain The domain name.
+	 * @param file The input file (if provided via file upload).
+	 * @param uri The input URI (if provided via remote URI).
+	 * @param string The input content (if provided via editor).
+	 * @param validationType The validation type.
+	 * @param contentType The type of the provided content.
+	 * @param externalSchemaContentType The content type of the user-provided schemas.
+	 * @param externalSchemaFiles The user-provided schemas (those provided as file uploads).
+	 * @param externalSchemaUri The user-provided schemas (those provided as URIs).
+	 * @param combinationType The combination type option in case of multiple schemas.
+	 * @param redirectAttributes Redirect attributes.
+	 * @param request The received request.
+	 * @return The model and view information.
+	 */
     @RequestMapping(method = RequestMethod.POST, value = "/{domain}/upload")
     public ModelAndView handleUpload(@PathVariable("domain") String domain,
                                      @RequestParam("file") MultipartFile file,
@@ -174,6 +197,14 @@ public class UploadController {
         return new ModelAndView("uploadForm", attributes);
     }
 
+	/**
+	 * Validate and get the combination approach for multiple schemas.
+	 *
+	 * @param validationType The validation type.
+	 * @param combinationType The combination type.
+	 * @param config The domain configuration.
+	 * @return The approach to use.
+	 */
 	private ValidationArtifactCombinationApproach getSchemaCombinationApproach(String validationType, String combinationType, DomainConfig config) {
 		ValidationArtifactCombinationApproach externalSchemaCombinationApproach = config.getSchemaInfo(validationType).getArtifactCombinationApproach();
 		if (StringUtils.isNotBlank(combinationType)) {
@@ -186,6 +217,14 @@ public class UploadController {
 		return externalSchemaCombinationApproach;
 	}
 
+	/**
+	 * Prepare the upload page (minimal UI version).
+	 *
+	 * @param domain The domain name.
+	 * @param model The UI model.
+	 * @param request The received request.
+	 * @return The model and view information.
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/{domain}/uploadm")
     public ModelAndView uploadm(@PathVariable("domain") String domain, Model model, HttpServletRequest request) {
 		setMinimalUIFlag(request, true);
@@ -208,8 +247,25 @@ public class UploadController {
         attributes.put("externalArtifactInfo", config.getExternalArtifactInfoMap());
         return new ModelAndView("uploadForm", attributes);
     }
-    
 
+
+	/**
+	 * Handle the upload form's submission (minimal UI version).
+	 *
+	 * @param domain The domain name.
+	 * @param file The input file (if provided via file upload).
+	 * @param uri The input URI (if provided via remote URI).
+	 * @param string The input content (if provided via editor).
+	 * @param validationType The validation type.
+	 * @param contentType The type of the provided content.
+	 * @param externalSchema The content type of the user-provided schemas.
+	 * @param externalSchemaFiles The user-provided schemas (those provided as file uploads).
+	 * @param externalSchemaUri The user-provided schemas (those provided as URIs).
+	 * @param combinationType The combination type option in case of multiple schemas.
+	 * @param redirectAttributes Redirect attributes.
+	 * @param request The received request.
+	 * @return The model and view information.
+	 */
     @RequestMapping(method = RequestMethod.POST, value = "/{domain}/uploadm")
     public ModelAndView handleUploadM(@PathVariable("domain") String domain,
                                       @RequestParam("file") MultipartFile file,
@@ -233,12 +289,30 @@ public class UploadController {
         return new ModelAndView("uploadForm", attributes);
 	}
 
+	/**
+	 * Record whether the current request is through a minimal UI.
+	 *
+	 * @param request The current request.
+	 * @param isMinimal True in case of the minimal UI being used.
+	 */
 	private void setMinimalUIFlag(HttpServletRequest request, boolean isMinimal) {
 		if (request.getAttribute(IS_MINIMAL) == null) {
 			request.setAttribute(IS_MINIMAL, isMinimal);
 		}
 	}
 
+	/**
+	 * Validate and get the user-provided schemas.
+	 *
+	 * @param externalContentType The directly provided schemas.
+	 * @param externalFiles The schemas provided as files.
+	 * @param externalUri The schemas provided as URIs.
+	 * @param schemaInfo The schema information from the domain.
+	 * @param validationType The validation type.
+	 * @param parentFolder The temporary folder to use for file system storage.
+	 * @return The list of user-provided artifacts.
+	 * @throws Exception IF an error occurs.
+	 */
     private List<FileInfo> getExternalFiles(String[] externalContentType, MultipartFile[] externalFiles, String[] externalUri,
 											ValidationArtifactInfo schemaInfo, String validationType, File parentFolder) throws Exception {
     	List<FileInfo> lis = new ArrayList<>();
@@ -269,6 +343,14 @@ public class UploadController {
     	
     }
 
+	/**
+	 * Validate the list of user-provided schemas.
+	 *
+	 * @param lis The schemas.
+	 * @param schemaInfo The schema information from the domain configuration.
+	 * @param validationType The validation type.
+	 * @return True for correctly provided schemas.
+	 */
     private boolean validateExternalFiles(List<FileInfo> lis, ValidationArtifactInfo schemaInfo, String validationType) {
     	ExternalArtifactSupport externalArtifactSupport = schemaInfo.getExternalArtifactSupport();
 		
@@ -292,7 +374,17 @@ public class UploadController {
     	
 		return validated;
 	}
-    
+
+	/**
+	 * Get the content to validate as a file.
+	 *
+	 * @param contentType The directly provided content.
+	 * @param inputFile The uploaded content file.
+	 * @param inputUri The provided URI to load the content from.
+	 * @param parentFolder The temporary folder to use.
+	 * @return The input content's file.
+	 * @throws IOException If an error occurs.
+	 */
     private File getInputFile(String contentType, MultipartFile inputFile, String inputUri, File parentFolder) throws IOException {
     	File f = null;
     	switch (contentType) {
@@ -310,7 +402,16 @@ public class UploadController {
     	
     	return f;
     }
-    
+
+	/**
+	 * Load a strea from the provided input.
+	 *
+	 * @param contentType The type of input provided.
+	 * @param inputStream The stream.
+	 * @param uri The URI.
+	 * @param string The text content
+	 * @return The stream to read.
+	 */
 	private InputStream getInputStream(String contentType, InputStream inputStream, String uri, String string) {
 		InputStream is = null;
 		

@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 /**
- * Configuration class responsible for creating the Spring beans required by the service.
+ * Configuration class responsible for creating the Spring beans required by the SOAP API.
  */
 @Configuration
 public class ValidationServiceConfig {
@@ -32,13 +32,22 @@ public class ValidationServiceConfig {
     @Autowired
     private DomainConfigCache domainConfigCache = null;
 
+    /**
+     * Create the CXF registration bean.
+     *
+     * @param context The application context.
+     * @return The bean.
+     */
     @Bean
     public ServletRegistrationBean servletRegistrationBean(ApplicationContext context) {
         ServletRegistrationBean<CXFServlet> srb = new ServletRegistrationBean<>(new CXFServlet(), "/"+ CXF_ROOT +"/*");
         srb.addInitParameter("hide-service-list-page", "true");
         return srb;
     }
-    
+
+    /**
+     * Initialisation method to create a separate web service endpoint per configured domain.
+     */
     @PostConstruct
     public void publishValidationServices() {
     	for (DomainConfig domainConfig: domainConfigCache.getAllDomainConfigurations()) {
