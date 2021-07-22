@@ -31,13 +31,12 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Spring component that realises the validation service.
+ * Spring component that realises the validation SOAP service.
  */
 @Component
 @Scope("prototype")
 public class ValidationServiceImpl implements ValidationService {
 
-    /** Logger. **/
     private static final Logger logger = LoggerFactory.getLogger(ValidationServiceImpl.class);
     private final DomainConfig domainConfig;
 
@@ -50,6 +49,11 @@ public class ValidationServiceImpl implements ValidationService {
     @Resource
     private WebServiceContext wsContext;
 
+    /**
+     * Constructor.
+     *
+     * @param domainConfig The domain configuration (each domain has its own instance).
+     */
     public ValidationServiceImpl(DomainConfig domainConfig) {
         this.domainConfig = domainConfig;
     }
@@ -131,6 +135,13 @@ public class ValidationServiceImpl implements ValidationService {
         }
     }
 
+    /**
+     * Validate the received external schema combination approach.
+     *
+     * @param validateRequest The received request.
+     * @param validationType The validation type.
+     * @return The approach to use.
+     */
     private ValidationArtifactCombinationApproach validateExternalSchemaCombinationApproach(ValidateRequest validateRequest, String validationType) {
         List<AnyContent> inputs = Utils.getInputFor(validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH);
         ValidationArtifactCombinationApproach approach;
@@ -146,6 +157,12 @@ public class ValidationServiceImpl implements ValidationService {
         return approach;
     }
 
+    /**
+     * Get the value of the input for the choice on whether location strings should be JSON pointers.
+     *
+     * @param validateRequest The received request.
+     * @return True if JSON pointers are to be used.
+     */
     private boolean getLocationAsPointerInputValue(ValidateRequest validateRequest) {
         List<AnyContent> inputs = Utils.getInputFor(validateRequest, ValidationConstants.INPUT_LOCATION_AS_POINTER);
         if (inputs.isEmpty()) {
@@ -155,6 +172,9 @@ public class ValidationServiceImpl implements ValidationService {
         }
     }
 
+    /**
+     * @return The web service context.
+     */
     public WebServiceContext getWebServiceContext() {
         return this.wsContext;
     }    

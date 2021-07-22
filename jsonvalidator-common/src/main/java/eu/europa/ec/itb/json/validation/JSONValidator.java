@@ -40,6 +40,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Component that carries out the validation of provided JSON content.
+ */
 @Component
 @Scope("prototype")
 public class JSONValidator {
@@ -65,6 +68,16 @@ public class JSONValidator {
     private List<FileInfo> externalSchemaFileInfo;
     private final ValidationArtifactCombinationApproach externalSchemaCombinationApproach;
 
+    /**
+     * Constructor.
+     *
+     * @param inputFileToValidate The file that contains the JSON content to validate.
+     * @param validationType The validation type to consider (can be null if there is only one).
+     * @param externalSchemas The list of external (user-provided) JSON schemas.
+     * @param externalSchemaCombinationApproach The way in which multiple user-provided JSON schemas are to be combined.
+     * @param domainConfig The current domain configuration.
+     * @param locationAsPointer True if the location for error messages should be a JSON pointer.
+     */
     public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer) {
         this.inputFileToValidate = inputFileToValidate;
         this.validationType = validationType;
@@ -77,14 +90,29 @@ public class JSONValidator {
         }
     }
 
+    /**
+     * Get the identifier of the current domain (its folder name).
+     *
+     * @return The identifier.
+     */
     public String getDomain() {
         return this.domainConfig.getDomain();
     }
 
+    /**
+     * Get the selected validation type.
+     *
+     * @return The validation type.
+     */
     public String getValidationType() { 
         return this.validationType;
     }
 
+    /**
+     * Run the validation and produce the report.
+     *
+     * @return The validation TAR report.
+     */
     public TAR validate() {
         TAR validationResult;
         try {
@@ -100,6 +128,11 @@ public class JSONValidator {
         return validationResult;
     }
 
+    /**
+     * Validate the JSON content against any configured plugins and return their aggregated validation report.
+     *
+     * @return The plugin validation report.
+     */
     private TAR validateAgainstPlugins() {
         TAR pluginReport = null;
         ValidationPlugin[] plugins = pluginManager.getPlugins(pluginConfigProvider.getPluginClassifier(domainConfig, validationType));
@@ -128,6 +161,12 @@ public class JSONValidator {
         return pluginReport;
     }
 
+    /**
+     * Prepare the inputs expected by custom plugins.
+     *
+     * @param pluginTmpFolder A temporary folder to use to store plugin inputs.
+     * @return The request instance to pass to the plugins.
+     */
     private ValidateRequest preparePluginInput(File pluginTmpFolder) {
         File pluginInputFile = new File(pluginTmpFolder, UUID.randomUUID().toString()+".json");
         try {
@@ -143,6 +182,12 @@ public class JSONValidator {
         return request;
     }
 
+    /**
+     * Pretty-print the JSON content to ensure meaningful location information.
+     *
+     * @param input The input to process.
+     * @return The pretty-printed result.
+     */
     private File prettyPrint(File input) {
         try (FileReader in = new FileReader(input)) {
             JsonElement json = com.google.gson.JsonParser.parseReader(in);
@@ -158,6 +203,13 @@ public class JSONValidator {
         }
     }
 
+    /**
+     * Run the validation against a set of JSON schemas and obtain the produced error messages.
+     *
+     * @param schemaFileInfos The JSON schemas to use.
+     * @param combinationApproach The way in which these should be combined (if multiple).
+     * @return The list of error messages.
+     */
     private List<String> validateAgainstSetOfSchemas(List<FileInfo> schemaFileInfos, ValidationArtifactCombinationApproach combinationApproach) {
         LinkedList<String> aggregatedErrorMessages = new LinkedList<>();
         if (combinationApproach == ValidationArtifactCombinationApproach.ALL) {
@@ -203,6 +255,13 @@ public class JSONValidator {
         return aggregatedErrorMessages;
     }
 
+    /**
+     * Add errors relevant to a specific validation branch.
+     *
+     * @param aggregatedErrorMessages The errors for all branches (used to collect new errors).
+     * @param branchMessages The messages linked to the specific branch.
+     * @param branchCounter The counter of the current branch.
+     */
     private void addBranchErrors(List<String> aggregatedErrorMessages, List<String> branchMessages, int branchCounter) {
         boolean firstForBranch = true;
         for (String error: branchMessages) {
@@ -215,6 +274,12 @@ public class JSONValidator {
         }
     }
 
+    /**
+     * Validate the JSON content against one JSON schema.
+     *
+     * @param schemaFile The schema file to use.
+     * @return The resulting error messages.
+     */
     private List<String> validateAgainstSchema(File schemaFile) {
         JsonSchema schema;
         try {
@@ -232,6 +297,11 @@ public class JSONValidator {
         return errorMessages;
     }
 
+    /**
+     * Run the internal steps needed for the validation.
+     *
+     * @return The resulting validation report.
+     */
     private TAR validateInternal() {
         // Pretty-print input to get good location results.
         inputFileToValidate = prettyPrint(inputFileToValidate);
@@ -261,6 +331,12 @@ public class JSONValidator {
         return report;
     }
 
+    /**
+     * Create a TAR validation report from a list of internal error message texts.
+     *
+     * @param errorMessages The error messages to process.
+     * @return The corresponding report.
+     */
     private TAR createReport(List<ErrorMessage> errorMessages) {
         TAR report = new TAR();
         report.setDate(Utils.getXMLGregorianCalendarDateTime());

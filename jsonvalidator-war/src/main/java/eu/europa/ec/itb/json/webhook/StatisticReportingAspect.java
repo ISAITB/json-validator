@@ -27,14 +27,16 @@ import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.gitb.ValidationServiceImpl;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 
+/**
+ * Aspect that advises the application's entry points to extract and send usage statistics (if enabled).
+ */
 @Aspect
 @Component
 @ConditionalOnProperty(name = "validator.webhook.statistics")
 public class StatisticReportingAspect extends StatisticReporting {
 
     private static final Logger logger = LoggerFactory.getLogger(StatisticReportingAspect.class);
-
-    private static ThreadLocal<Map<String, String>> adviceContext = new ThreadLocal<>();
+    private static final ThreadLocal<Map<String, String>> adviceContext = new ThreadLocal<>();
 
     @Autowired
     private ApplicationConfig config;
@@ -55,6 +57,8 @@ public class StatisticReportingAspect extends StatisticReporting {
 
     /**
      * Advice to obtain the arguments passed to the web upload API call.
+     *
+     * @param joinPoint The original call's information.
      */
     @Before("minimalUploadValidation() || uploadValidation()")
     public void getUploadContext(JoinPoint joinPoint) throws Throwable {
@@ -72,6 +76,8 @@ public class StatisticReportingAspect extends StatisticReporting {
 
     /**
      * Advice to obtain the arguments passed to the SOAP API call.
+     *
+     * @param joinPoint The original call's information.
      */
     @Before(value = "execution(public * eu.europa.ec.itb.json.gitb.ValidationServiceImpl.validate(..))")
     public void getSoapCallContext(JoinPoint joinPoint) throws Throwable {
@@ -89,6 +95,8 @@ public class StatisticReportingAspect extends StatisticReporting {
 
     /**
      * Advice to send the usage report.
+     *
+     * @param joinPoint The original call's information.
      */
     @Around("execution(public * eu.europa.ec.itb.json.validation.JSONValidator.validate(..))")
     public Object reportValidatorDataUsage(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -117,6 +125,9 @@ public class StatisticReportingAspect extends StatisticReporting {
     /**
      * Method that obtains a TAR object and obtains the result of the validation to
      * be reported.
+     *
+     * @param report The report to consider.
+     * @return The validation result.
      */
     private UsageData.Result extractResult(TAR report) {
         TestResultType tarResult = report.getResult();
