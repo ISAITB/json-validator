@@ -14,7 +14,7 @@ public class BeanConfiguration {
     /**
      * Support the definition of plugins.
      *
-     * @return The default plugin provider..
+     * @return The default plugin provider.
      */
     @Bean
     public DomainPluginConfigProvider pluginConfigProvider() {
