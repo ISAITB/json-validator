@@ -87,6 +87,12 @@ public class ValidationServiceImpl implements ValidationService {
         return response;
     }
 
+    /**
+     * Check to see if the domain configuration includes validation types that support or require
+     * user-provided schemas.
+     *
+     * @return True if user-provided schemas are expected or required.
+     */
     private boolean definesTypeWithExternalSchemas() {
         for (TypedValidationArtifactInfo info: domainConfig.getArtifactInfo().values()) {
             if (info.get().getExternalArtifactSupport() != ExternalArtifactSupport.NONE) {
