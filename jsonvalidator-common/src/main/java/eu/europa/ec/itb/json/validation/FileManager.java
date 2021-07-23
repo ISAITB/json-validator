@@ -24,7 +24,7 @@ public class FileManager extends BaseFileManager<ApplicationConfig> {
      * @see BaseFileManager#getFileExtension(String)
      *
      * @param contentType The content type (ignored).
-     * @return Always "json"
+     * @return Always "json".
      */
     @Override
     public String getFileExtension(String contentType) {
