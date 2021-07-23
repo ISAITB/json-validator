@@ -1,5 +1,5 @@
 ![BuildStatus](https://github.com/ISAITB/json-validator/actions/workflows/main.yml/badge.svg)
-[![licence](https://img.shields.io/github/license/ISAITB/itb-commons.svg?color=blue)](https://github.com/ISAITB/itb-commons/blob/master/LICENCE.txt)
+[![licence](https://img.shields.io/github/license/ISAITB/json-validator.svg?color=blue)](https://github.com/ISAITB/json-validator/blob/master/LICENCE.txt)
 [![docs](https://img.shields.io/static/v1?label=docs&message=Test%20Bed%20guides&color=blue)](https://www.itb.ec.europa.eu/docs/guides/latest/validatingJSON/)
 [![docker](https://img.shields.io/docker/pulls/isaitb/json-validator?color=blue&logo=docker&logoColor=white)](https://hub.docker.com/r/isaitb/json-validator)
 
@@ -50,7 +50,7 @@ of JAR post-processing to configure the validator's domain(s).
 
 Once the validator's web application is up you can use it as follows:
 
-* SOAP-API: http://localhost:8080/json/soap/DOMAIN/validation?wsdl
+* SOAP API: http://localhost:8080/json/soap/DOMAIN/validation?wsdl
 * Web form: http://localhost:8080/json/DOMAIN/upload
 
 Note that the `DOMAIN` placeholder in the above URLs is the name of a domain configuration folder beneath your configured `validator.resourceRoot`.
@@ -154,6 +154,6 @@ feel free to contact the Test Bed team via email at [DIGIT-ITB@ec.europa.eu](mai
 # See also
 
 The Test Bed provides similar validators for other content types. Check these out for more information:
-* The **RDF validator**: see [overview](https://joinup.ec.europa.eu/collection/interoperability-test-bed-repository/solution/rdf-validator), [detailed guide](https://www.itb.ec.europa.eu/docs/guides/latest/validatingRDF/) and [Docker Hub image](https://hub.docker.com/r/isaitb/shacl-validator).
-* The **XML validator**: see [overview](https://joinup.ec.europa.eu/collection/interoperability-test-bed-repository/solution/xml-validator), [detailed guide](https://www.itb.ec.europa.eu/docs/guides/latest/validatingXML/) and [Docker Hub image](https://hub.docker.com/r/isaitb/xml-validator).
-* The **CSV validator**: see [overview](https://joinup.ec.europa.eu/collection/interoperability-test-bed-repository/solution/csv-validator), [detailed guide](https://www.itb.ec.europa.eu/docs/guides/latest/validatingCSV/) and [Docker Hub image](https://hub.docker.com/r/isaitb/csv-validator).
+* The **RDF validator**: see [overview](https://joinup.ec.europa.eu/collection/interoperability-test-bed-repository/solution/rdf-validator), [source](https://github.com/ISAITB/shacl-validator), [detailed guide](https://www.itb.ec.europa.eu/docs/guides/latest/validatingRDF/) and [Docker Hub image](https://hub.docker.com/r/isaitb/shacl-validator).
+* The **XML validator**: see [overview](https://joinup.ec.europa.eu/collection/interoperability-test-bed-repository/solution/xml-validator), [source](https://github.com/ISAITB/xml-validator), [detailed guide](https://www.itb.ec.europa.eu/docs/guides/latest/validatingXML/) and [Docker Hub image](https://hub.docker.com/r/isaitb/xml-validator).
+* The **CSV validator**: see [overview](https://joinup.ec.europa.eu/collection/interoperability-test-bed-repository/solution/csv-validator), [source](https://github.com/ISAITB/csv-validator), [detailed guide](https://www.itb.ec.europa.eu/docs/guides/latest/validatingCSV/) and [Docker Hub image](https://hub.docker.com/r/isaitb/csv-validator).
