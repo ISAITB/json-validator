@@ -58,7 +58,7 @@ public class ValidationRunner {
     private ReportGeneratorBean reportGenerator;
 
     /**
-     * Initialisation method to determine the if the domain configurations are well-defined.
+     * Initialisation method to determine if the domain configurations are well-defined.
      */
     @PostConstruct
     public void init() {
@@ -262,7 +262,7 @@ public class ValidationRunner {
     }
 
     /**
-     * Pront the usage string for the validator.
+     * Print the usage string for the validator.
      *
      * @param requireType True if the validation type should be included in the message.
      */

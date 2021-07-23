@@ -3,7 +3,7 @@ package eu.europa.ec.itb.json.standalone;
 import com.gitb.tr.TAR;
 
 /**
- * Classed used to summarise a TAR validation report.
+ * Class used to summarise a TAR validation report.
  */
 public class FileReport {
 

@@ -44,7 +44,7 @@ import java.util.*;
 public class UploadController {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
-    public static final String IS_MINIMAL = "isMinimal";
+    private static final String IS_MINIMAL = "isMinimal";
     private static final String contentType_file     	= "fileType" ;
     private static final String contentType_uri     		= "uriType" ;
     private static final String contentType_string     	= "stringType" ;
