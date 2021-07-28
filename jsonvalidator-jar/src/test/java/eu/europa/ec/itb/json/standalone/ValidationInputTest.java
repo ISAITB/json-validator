@@ -1,5 +1,6 @@
 package eu.europa.ec.itb.json.standalone;
 
+import eu.europa.ec.itb.validation.commons.jar.ValidationInput;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
