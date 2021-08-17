@@ -322,6 +322,7 @@ public class JSONValidator {
         inputReportContent.setType("string");
         inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
         inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
+        inputReportContent.setMimeType("application/json");
         try {
             inputReportContent.setValue(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
         } catch (IOException e) {
