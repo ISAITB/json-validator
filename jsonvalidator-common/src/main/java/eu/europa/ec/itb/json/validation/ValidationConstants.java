@@ -19,5 +19,6 @@ public class ValidationConstants {
     public static String INPUT_EXTERNAL_SCHEMAS_SCHEMA = "schema";
     /** The combination approach for multiple user-provided artifacts. */
     public static String INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH = "externalSchemaCombinationApproach";
-
+    /** Whether the validated content should be added to the TAR report. */
+    public static String INPUT_ADD_INPUT_TO_REPORT = "addInputToReport";
 }
