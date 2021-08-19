@@ -33,7 +33,8 @@ public class ValidationServiceImplTest {
                 ValidationConstants.INPUT_CONTENT, "Description of INPUT_CONTENT",
                 ValidationConstants.INPUT_EMBEDDING_METHOD, "Description of INPUT_EMBEDDING_METHOD",
                 ValidationConstants.INPUT_VALIDATION_TYPE, "Description of INPUT_VALIDATION_TYPE",
-                ValidationConstants.INPUT_LOCATION_AS_POINTER, "Description of INPUT_LOCATION_AS_POINTER"
+                ValidationConstants.INPUT_LOCATION_AS_POINTER, "Description of INPUT_LOCATION_AS_POINTER",
+                ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, "Description of INPUT_ADD_INPUT_TO_REPORT"
         )).when(domainConfig).getWebServiceDescription();
         var service = new ValidationServiceImpl(domainConfig);
         var result = service.getModuleDefinition(new Void());
@@ -41,7 +42,7 @@ public class ValidationServiceImplTest {
         assertNotNull(result.getModule());
         assertEquals("service1", result.getModule().getId());
         assertNotNull(result.getModule().getInputs());
-        assertEquals(4, result.getModule().getInputs().getParam().size());
+        assertEquals(5, result.getModule().getInputs().getParam().size());
         assertEquals(ValidationConstants.INPUT_CONTENT, result.getModule().getInputs().getParam().get(0).getName());
         assertEquals("Description of INPUT_CONTENT", result.getModule().getInputs().getParam().get(0).getDesc());
         assertEquals(UsageEnumeration.R, result.getModule().getInputs().getParam().get(0).getUse());
@@ -54,6 +55,8 @@ public class ValidationServiceImplTest {
         assertEquals(ValidationConstants.INPUT_LOCATION_AS_POINTER, result.getModule().getInputs().getParam().get(3).getName());
         assertEquals("Description of INPUT_LOCATION_AS_POINTER", result.getModule().getInputs().getParam().get(3).getDesc());
         assertEquals(UsageEnumeration.O, result.getModule().getInputs().getParam().get(3).getUse());
+        assertEquals("Description of INPUT_ADD_INPUT_TO_REPORT", result.getModule().getInputs().getParam().get(4).getDesc());
+        assertEquals(UsageEnumeration.O, result.getModule().getInputs().getParam().get(4).getUse());
     }
 
 }

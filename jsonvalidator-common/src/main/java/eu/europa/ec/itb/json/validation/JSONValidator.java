@@ -64,6 +64,7 @@ public class JSONValidator {
     private File inputFileToValidate;
     private final DomainConfig domainConfig;
     private final boolean locationAsPointer;
+    private final boolean addInputToReport;
     private String validationType;
     private List<FileInfo> externalSchemaFileInfo;
     private final ValidationArtifactCombinationApproach externalSchemaCombinationApproach;
@@ -79,12 +80,28 @@ public class JSONValidator {
      * @param locationAsPointer True if the location for error messages should be a JSON pointer.
      */
     public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer) {
+        this(inputFileToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, locationAsPointer, true);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param inputFileToValidate The file that contains the JSON content to validate.
+     * @param validationType The validation type to consider (can be null if there is only one).
+     * @param externalSchemas The list of external (user-provided) JSON schemas.
+     * @param externalSchemaCombinationApproach The way in which multiple user-provided JSON schemas are to be combined.
+     * @param domainConfig The current domain configuration.
+     * @param locationAsPointer True if the location for error messages should be a JSON pointer.
+     * @param addInputToReport True if the provided input should be added as context to the produced TAR report.
+     */
+    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer, boolean addInputToReport) {
         this.inputFileToValidate = inputFileToValidate;
         this.validationType = validationType;
         this.domainConfig = domainConfig;
         this.externalSchemaFileInfo = externalSchemas;
         this.externalSchemaCombinationApproach = externalSchemaCombinationApproach;
         this.locationAsPointer = locationAsPointer;
+        this.addInputToReport = addInputToReport;
         if (validationType == null) {
             this.validationType = domainConfig.getType().get(0);
         }
@@ -316,18 +333,21 @@ public class JSONValidator {
             aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach));
         }
         TAR report = createReport(ErrorMessage.processMessages(aggregatedErrorMessages, appConfig.getBranchErrorMessageValues()));
-        report.setContext(new AnyContent());
-        report.getContext().setType("map");
-        AnyContent inputReportContent = new AnyContent();
-        inputReportContent.setType("string");
-        inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
-        inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
-        try {
-            inputReportContent.setValue(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to generate output report", e);
+        if (addInputToReport) {
+            report.setContext(new AnyContent());
+            report.getContext().setType("map");
+            AnyContent inputReportContent = new AnyContent();
+            inputReportContent.setType("string");
+            inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
+            inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
+            inputReportContent.setMimeType("application/json");
+            try {
+                inputReportContent.setValue(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to generate output report", e);
+            }
+            report.getContext().getItem().add(inputReportContent);
         }
-        report.getContext().getItem().add(inputReportContent);
         return report;
     }
 

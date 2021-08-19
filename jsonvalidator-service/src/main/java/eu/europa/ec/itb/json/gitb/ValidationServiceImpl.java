@@ -84,6 +84,7 @@ public class ValidationServiceImpl implements ValidationService {
             response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, "boolean", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH)));
         }
         response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_LOCATION_AS_POINTER, "boolean", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_LOCATION_AS_POINTER)));
+        response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, "boolean", UsageEnumeration.O, ConfigurationType.SIMPLE, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_ADD_INPUT_TO_REPORT)));
         return response;
     }
 
@@ -117,14 +118,15 @@ public class ValidationServiceImpl implements ValidationService {
     	try {
 			// Validation of the input data
 			ValueEmbeddingEnumeration contentEmbeddingMethod = inputHelper.validateContentEmbeddingMethod(validateRequest, ValidationConstants.INPUT_EMBEDDING_METHOD);
-			boolean locationAsPointer = getLocationAsPointerInputValue(validateRequest);
+			boolean locationAsPointer = getInputAsBoolean(validateRequest, ValidationConstants.INPUT_LOCATION_AS_POINTER, false);
+            boolean addInputToReport = getInputAsBoolean(validateRequest, ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, true);
             File contentToValidate = inputHelper.validateContentToValidate(validateRequest, ValidationConstants.INPUT_CONTENT, contentEmbeddingMethod, tempFolderPath);
             String validationType = inputHelper.validateValidationType(domainConfig, validateRequest, ValidationConstants.INPUT_VALIDATION_TYPE);
             List<FileInfo> externalSchemas = inputHelper.validateExternalArtifacts(domainConfig, validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMAS, ValidationConstants.INPUT_EXTERNAL_SCHEMAS_SCHEMA, ValidationConstants.INPUT_EMBEDDING_METHOD, validationType, null, tempFolderPath);
             ValidationArtifactCombinationApproach externalSchemaCombinationApproach = validateExternalSchemaCombinationApproach(validateRequest, validationType);
             ValidationResponse result = new ValidationResponse();
 			// Execute validation
-            JSONValidator validator = ctx.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, locationAsPointer);
+            JSONValidator validator = ctx.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, locationAsPointer, addInputToReport);
 			result.setReport(validator.validate());
 			return result;
         } catch (ValidatorException e) {
@@ -164,18 +166,19 @@ public class ValidationServiceImpl implements ValidationService {
     }
 
     /**
-     * Get the value of the input for the choice on whether location strings should be JSON pointers.
+     * Get the provided (optional) input as a boolean value.
      *
-     * @param validateRequest The received request.
-     * @return True if JSON pointers are to be used.
+     * @param validateRequest The input parameters.
+     * @param inputName The name of the input to look for.
+     * @param defaultIfMissing The default value to use if the input is not provided.
+     * @return The value to use.
      */
-    private boolean getLocationAsPointerInputValue(ValidateRequest validateRequest) {
-        List<AnyContent> inputs = Utils.getInputFor(validateRequest, ValidationConstants.INPUT_LOCATION_AS_POINTER);
-        if (inputs.isEmpty()) {
-            return false;
-        } else {
-            return Boolean.parseBoolean(inputs.get(0).getValue());
+    private boolean getInputAsBoolean(ValidateRequest validateRequest, String inputName, boolean defaultIfMissing) {
+        List<AnyContent> input = Utils.getInputFor(validateRequest, inputName);
+        if (!input.isEmpty()) {
+            return Boolean.parseBoolean(input.get(0).getValue());
         }
+        return defaultIfMissing;
     }
 
     /**
