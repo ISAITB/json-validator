@@ -41,9 +41,9 @@ public class ErrorMessage {
                 msgObj = processMessage(msg);
                 if (msgObj.getBranch() != null) {
                     currentBranch = msgObj.getBranch();
-                    msgObj.setMessage("- [Set "+currentBranch+"]: " + msgObj.getMessage());
+                    msgObj.setMessage("- ["+currentBranch+"]: " + msgObj.getMessage());
                 } else if (msgObj.isInSet() && currentBranch != null) {
-                    msgObj.setMessage("- [Set "+currentBranch+"]: " + msgObj.getMessage());
+                    msgObj.setMessage("- ["+currentBranch+"]: " + msgObj.getMessage());
                 } else {
                     currentBranch = null;
                 }

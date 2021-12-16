@@ -12,6 +12,7 @@ import com.google.gson.JsonSyntaxException;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.Utils;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.config.DomainPluginConfigProvider;
@@ -68,6 +69,7 @@ public class JSONValidator {
     private String validationType;
     private List<FileInfo> externalSchemaFileInfo;
     private final ValidationArtifactCombinationApproach externalSchemaCombinationApproach;
+    private final LocalisationHelper localiser;
 
     /**
      * Constructor.
@@ -77,10 +79,11 @@ public class JSONValidator {
      * @param externalSchemas The list of external (user-provided) JSON schemas.
      * @param externalSchemaCombinationApproach The way in which multiple user-provided JSON schemas are to be combined.
      * @param domainConfig The current domain configuration.
+     * @param localiser The helper class for localisations.
      * @param locationAsPointer True if the location for error messages should be a JSON pointer.
      */
-    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer) {
-        this(inputFileToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, locationAsPointer, true);
+    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, LocalisationHelper localiser, boolean locationAsPointer) {
+        this(inputFileToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, localiser, locationAsPointer, true);
     }
 
     /**
@@ -92,9 +95,10 @@ public class JSONValidator {
      * @param externalSchemaCombinationApproach The way in which multiple user-provided JSON schemas are to be combined.
      * @param domainConfig The current domain configuration.
      * @param locationAsPointer True if the location for error messages should be a JSON pointer.
+     * @param localiser The helper class for localisations.
      * @param addInputToReport True if the provided input should be added as context to the produced TAR report.
      */
-    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, boolean locationAsPointer, boolean addInputToReport) {
+    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, LocalisationHelper localiser, boolean locationAsPointer, boolean addInputToReport) {
         this.inputFileToValidate = inputFileToValidate;
         this.validationType = validationType;
         this.domainConfig = domainConfig;
@@ -102,6 +106,7 @@ public class JSONValidator {
         this.externalSchemaCombinationApproach = externalSchemaCombinationApproach;
         this.locationAsPointer = locationAsPointer;
         this.addInputToReport = addInputToReport;
+        this.localiser = localiser;
         if (validationType == null) {
             this.validationType = domainConfig.getType().get(0);
         }
@@ -214,9 +219,9 @@ public class JSONValidator {
             FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
             return output;
         } catch (JsonSyntaxException e) {
-            throw new ValidatorException("The provided input is not valid JSON.", e);
+            throw new ValidatorException("validator.label.exception.providedInputNotJSON", e);
         } catch (IOException e) {
-            throw new ValidatorException("Failed to parse JSON input.", e);
+            throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
         }
     }
 
@@ -251,7 +256,7 @@ public class JSONValidator {
             } else if (successCount == 1) {
                 aggregatedErrorMessages.clear();
             } else if (successCount > 1) {
-                aggregatedErrorMessages.add("Only one schema should be valid. Instead the content validated against "+successCount+" schemas.");
+                aggregatedErrorMessages.add(localiser.localise("validator.label.exception.onlyOneSchemaShouldBeValid", successCount));
             }
         } else {
             // Any of the schemas should validate successfully.
@@ -302,7 +307,7 @@ public class JSONValidator {
         try {
             schema = jsonValidationService.readSchema(schemaFile.toPath());
         } catch (JsonParsingException e) {
-            throw new ValidatorException("Error while parsing JSON schema: "+e.getMessage(), e);
+            throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }
         List<String> errorMessages = new ArrayList<>();
         ProblemHandler handler = jsonValidationService.createProblemPrinterBuilder(errorMessages::add).withLocation(true).build();

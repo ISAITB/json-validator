@@ -19,11 +19,11 @@
                 [/]
             [/]
             configure({
-                externalArtifactFileLabel: [[${config.label.optionContentFile}]],
-                externalArtifactURILabel: [[${config.label.optionContentURI}]],
+                externalArtifactFileLabel: [[${localiser.localise('validator.label.optionContentFile')}]],
+                externalArtifactURILabel: [[${localiser.localise('validator.label.optionContentURI')}]],
                 externalArtifactSettings: {
                     default: {
-                        filePlaceholder: [[${config.label.externalSchemaPlaceholder}]]
+                        filePlaceholder: [[${localiser.localise('validator.label.externalSchemaPlaceholder')}]],
                     }
                 },
                 codeTypeObj: {name: "javascript", json: true},
@@ -43,15 +43,15 @@
                         <div th:replace="fragments/input :: formHeader(${config}, ${minimalUI})"/>
                         <div th:class="${minimalUI} ? panel-body : ''">
                             <div th:replace="fragments/input :: mainForm(${config})"/>
-                            <div th:replace="fragments/input :: externalArtifactCheck(${config.label.includeExternalArtefacts}, ${config.label.externalArtefactsTooltip})"/>
-                            <div th:replace="fragments/input :: externalArtifactControl('default', ${config.label.externalSchemaLabel})"/>
+                            <div th:replace="fragments/input :: externalArtifactCheck(${localiser.localise('validator.label.includeExternalArtefacts')}, ${localiser.localise('validator.label.externalArtefactsTooltip')})"/>
+                            <div th:replace="fragments/input :: externalArtifactControl('default', ${localiser.localise('validator.label.externalSchemaLabel')})"/>
                             <div id="schemaCombinationDiv" class="form-group">
-                                <label for="combinationType" class="col-sm-2 control-label" th:text="${config.label.schemaCombinationLabel}">Validation approach</label>
+                                <label for="combinationType" class="col-sm-2 control-label" th:text="${localiser.localise('validator.label.schemaCombinationLabel')}">Validation approach</label>
                                 <div class="col-sm-6">
                                     <select class="form-control" id="combinationType" name="combinationType">
-                                        <option value="allOf" th:text="${config.label.schemaCombinationAllOf}" selected="true"></option>
-                                        <option value="anyOf" th:text="${config.label.schemaCombinationAnyOf}"></option>
-                                        <option value="oneOf" th:text="${config.label.schemaCombinationOneOf}"></option>
+                                        <option value="allOf" th:text="${localiser.localise('validator.label.schemaCombinationAllOf')}" selected="true"></option>
+                                        <option value="anyOf" th:text="${localiser.localise('validator.label.schemaCombinationAnyOf')}"></option>
+                                        <option value="oneOf" th:text="${localiser.localise('validator.label.schemaCombinationOneOf')}"></option>
                                     </select>
                                 </div>
                             </div>
@@ -68,6 +68,7 @@
                 </div>
                 <div th:replace="fragments/output :: reportDetails(${config}, ${minimalUI}, true)"/>
             </div>
+            <div th:replace="fragments/common :: localeSelector(${config}, ${localiser.getLocale()})"/>
             <div th:replace="fragments/common :: footer(${config}, ${minimalUI})"/>
         </div>
         <div th:replace="fragments/common :: about">About</div>
