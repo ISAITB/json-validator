@@ -5,6 +5,7 @@ import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.commons.jar.BaseValidationRunner;
@@ -27,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Component that handles the actual triggering of validation and resulting reporting.
@@ -97,7 +99,11 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                     validationType = domainConfig.getType().get(0);
                 }
             }
-        } catch (IllegalArgumentException|ValidatorException e) {
+        } catch (ValidatorException e) {
+            LOGGER_FEEDBACK.info("\nInvalid arguments provided: "+e.getMessageForDisplay(new LocalisationHelper(domainConfig, Locale.ENGLISH))+"\n");
+            LOGGER.error("Invalid arguments provided: "+e.getMessageForLog(), e);
+            inputs.clear();
+        } catch (IllegalArgumentException e) {
             LOGGER_FEEDBACK.info("\nInvalid arguments provided: "+e.getMessage()+"\n");
             LOGGER.error("Invalid arguments provided: "+e.getMessage(), e);
             inputs.clear();
@@ -116,7 +122,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
             for (ValidationInput input: inputs) {
                 LOGGER_FEEDBACK.info(String.format("\nValidating %s of %s ...", i+1, inputs.size()));
                 try {
-                    JSONValidator validator = ctx.getBean(JSONValidator.class, input.getInputFile(), validationType, externalSchemaFileInfo, externalSchemaCombinationApproach, domainConfig, false);
+                    JSONValidator validator = ctx.getBean(JSONValidator.class, input.getInputFile(), validationType, externalSchemaFileInfo, externalSchemaCombinationApproach, domainConfig, new LocalisationHelper(domainConfig, Locale.ENGLISH), false);
                     TAR report = validator.validate();
                     if (report == null) {
                         summary.append("\nNo validation report was produced.\n");
@@ -136,7 +142,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                                 // Create PDF report
                                 File pdfReportFile = new File(xmlReportFile.getParentFile(), "report."+i+".pdf");
                                 Files.deleteIfExists(pdfReportFile.toPath());
-                                reportGenerator.writeReport(domainConfig, xmlReportFile, pdfReportFile);
+                                reportGenerator.writeReport(xmlReportFile, pdfReportFile, new LocalisationHelper(domainConfig, Locale.ENGLISH));
                                 summary.append("- Detailed reports in [").append(xmlReportFile.getAbsolutePath()).append("] and [").append(pdfReportFile.getAbsolutePath()).append("] \n");
                             } else if (report.getCounters() != null && (report.getCounters().getNrOfAssertions().longValue() + report.getCounters().getNrOfErrors().longValue() + report.getCounters().getNrOfWarnings().longValue()) <= domainConfig.getMaximumReportsForXmlOutput()) {
                                 summary.append("- Detailed report in [").append(xmlReportFile.getAbsolutePath()).append("] (PDF report skipped due to large number of report items) \n");
@@ -146,8 +152,8 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                         }
                     }
                 } catch (ValidatorException e) {
-                    LOGGER_FEEDBACK.info("\nAn error occurred while executing the validation: "+e.getMessage());
-                    LOGGER.error("An error occurred while executing the validation: "+e.getMessage(), e);
+                    LOGGER_FEEDBACK.info("\nAn error occurred while executing the validation: "+e.getMessageForDisplay(new LocalisationHelper(domainConfig, Locale.ENGLISH)));
+                    LOGGER.error("An error occurred while executing the validation: "+e.getMessageForLog(), e);
                     break;
 
                 } catch (Exception e) {
