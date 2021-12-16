@@ -7,12 +7,14 @@ import eu.europa.ec.itb.json.DomainConfigCache;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.ValidatorChannel;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.commons.web.errors.NotFoundException;
+import eu.europa.ec.itb.validation.commons.web.locale.CustomLocaleResolver;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -51,15 +54,14 @@ public class UploadController {
 
     @Autowired
     private FileManager fileManager = null;
-
     @Autowired
     private BeanFactory beans = null;
-
     @Autowired
     private DomainConfigCache domainConfigs = null;
-
     @Autowired
     private ApplicationConfig appConfig = null;
+    @Autowired
+    private CustomLocaleResolver localeResolver = null;
 
     /**
      * Prepare the upload page.
@@ -67,10 +69,11 @@ public class UploadController {
      * @param domain The domain name.
      * @param model The UI model.
      * @param request The received request.
+     * @param response The HTTP response.
      * @return The model and view information.
      */
     @RequestMapping(method = RequestMethod.GET, value = "/{domain}/upload")
-    public ModelAndView upload(@PathVariable("domain") String domain, Model model, HttpServletRequest request) {
+    public ModelAndView upload(@PathVariable("domain") String domain, Model model, HttpServletRequest request, HttpServletResponse response) {
         setMinimalUIFlag(request, false);
         DomainConfig config = domainConfigs.getConfigForDomainName(domain);
         if (config == null || !config.getChannels().contains(ValidatorChannel.FORM)) {
@@ -82,6 +85,9 @@ public class UploadController {
         attributes.put("appConfig", appConfig);
         attributes.put("minimalUI", false);
         attributes.put("externalArtifactInfo", config.getExternalArtifactInfoMap());
+        var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
+        attributes.put("localiser", localisationHelper);
+        attributes.put("htmlBannerExists", localisationHelper.propertyExists("validator.bannerHtml"));
         return new ModelAndView("uploadForm", attributes);
     }
 
@@ -100,6 +106,7 @@ public class UploadController {
      * @param combinationType The combination type option in case of multiple schemas.
      * @param redirectAttributes Redirect attributes.
      * @param request The received request.
+     * @param response The HTTP response.
      * @return The model and view information.
      */
     @RequestMapping(method = RequestMethod.POST, value = "/{domain}/upload")
@@ -114,39 +121,43 @@ public class UploadController {
                                      @RequestParam(value = "uri-external_default", required = false) String[] externalSchemaUri,
                                      @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
                                      RedirectAttributes redirectAttributes,
-                                     HttpServletRequest request) {
+                                     HttpServletRequest request,
+                                     HttpServletResponse response) {
         setMinimalUIFlag(request, false);
         DomainConfig config = domainConfigs.getConfigForDomainName(domain);
         if (config == null || !config.getChannels().contains(ValidatorChannel.FORM)) {
             throw new NotFoundException();
         }
+        var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
         MDC.put("domain", domain);
         InputStream stream = null;
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("config", config);
         attributes.put("minimalUI", false);
+        attributes.put("localiser", localisationHelper);
+        attributes.put("htmlBannerExists", localisationHelper.propertyExists("validator.bannerHtml"));
         attributes.put("externalArtifactInfo", config.getExternalArtifactInfoMap());
 
         if (StringUtils.isNotBlank(validationType)) {
-            attributes.put("validationTypeLabel", config.getTypeLabel().get(validationType));
+            attributes.put("validationTypeLabel", config.getCompleteTypeOptionLabel(validationType, localisationHelper));
         }
         attributes.put("appConfig", appConfig);
         try (InputStream fis = getInputStream(contentType, file.getInputStream(), uri, string)) {
             if (fileManager.checkFileType(fis)) {
                 stream = getInputStream(contentType, file.getInputStream(), uri, string);
             } else {
-                attributes.put("message", "Provided input is not a JSON document");
+                attributes.put("message", localisationHelper.localise("validator.label.exception.providedInputNotJSON"));
             }
         } catch (IOException e) {
             logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
-            attributes.put("message", "Error in upload [" + e.getMessage() + "]");
+            attributes.put("message", localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
         }
         if (StringUtils.isBlank(validationType)) {
             validationType = config.getType().get(0);
         }
         if (config.hasMultipleValidationTypes() && (validationType == null || !config.getType().contains(validationType))) {
             // A validation type is required.
-            attributes.put("message", "Provided validation type is not valid");
+            attributes.put("message", localisationHelper.localise("validator.label.exception.providedValidationTypeNotValid"));
         }
         File tempFolderForRequest = fileManager.createTemporaryFolderPath();
         try {
@@ -156,14 +167,14 @@ public class UploadController {
                 boolean proceedToValidate = true;
                 try {
                     externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, config.getSchemaInfo(validationType), validationType, tempFolderForRequest);
-                } catch (Exception e) {
+                } catch (IOException e) {
                     logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
-                    attributes.put("message", "Error in upload [" + e.getMessage() + "]");
+                    attributes.put("message", localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
                     proceedToValidate = false;
                 }
                 if (proceedToValidate) {
                     ValidationArtifactCombinationApproach externalSchemaCombinationApproach = getSchemaCombinationApproach(validationType, combinationType, config);
-                    JSONValidator validator = beans.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, config, false);
+                    JSONValidator validator = beans.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, config, localisationHelper, false);
                     TAR report = validator.validate();
                     attributes.put("report", report);
                     attributes.put("date", report.getDate().toString());
@@ -185,9 +196,16 @@ public class UploadController {
                     }
                 }
             }
+        } catch (ValidatorException e) {
+            logger.error(e.getMessageForLog(), e);
+            attributes.put("message", e.getMessageForDisplay(localisationHelper));
         } catch (Exception e) {
             logger.error("An error occurred during the validation [" + e.getMessage() + "]", e);
-            attributes.put("message", "An error occurred during the validation: " + e.getMessage());
+            if (e.getMessage() != null) {
+                attributes.put("message", localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidationWithParams", e.getMessage()));
+            } else {
+                attributes.put("message", localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidation"));
+            }
         } finally {
             // Cleanup temporary resources for request.
             if (tempFolderForRequest.exists()) {
@@ -211,7 +229,7 @@ public class UploadController {
             try {
                 externalSchemaCombinationApproach = ValidationArtifactCombinationApproach.byName(combinationType);
             } catch (IllegalArgumentException e) {
-                throw new ValidatorException("Invalid schema combination approach ["+combinationType+"]");
+                throw new ValidatorException("validator.label.exception.invalidSchemaCombinationApproach", combinationType);
             }
         }
         return externalSchemaCombinationApproach;
@@ -223,10 +241,11 @@ public class UploadController {
      * @param domain The domain name.
      * @param model The UI model.
      * @param request The received request.
+     * @param response The HTTP response.
      * @return The model and view information.
      */
     @RequestMapping(method = RequestMethod.GET, value = "/{domain}/uploadm")
-    public ModelAndView uploadm(@PathVariable("domain") String domain, Model model, HttpServletRequest request) {
+    public ModelAndView uploadm(@PathVariable("domain") String domain, Model model, HttpServletRequest request, HttpServletResponse response) {
         setMinimalUIFlag(request, true);
 
         DomainConfig config = domainConfigs.getConfigForDomainName(domain);
@@ -245,6 +264,9 @@ public class UploadController {
         attributes.put("appConfig", appConfig);
         attributes.put("minimalUI", true);
         attributes.put("externalArtifactInfo", config.getExternalArtifactInfoMap());
+        var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
+        attributes.put("localiser", localisationHelper);
+        attributes.put("htmlBannerExists", localisationHelper.propertyExists("validator.bannerHtml"));
         return new ModelAndView("uploadForm", attributes);
     }
 
@@ -264,6 +286,7 @@ public class UploadController {
      * @param combinationType The combination type option in case of multiple schemas.
      * @param redirectAttributes Redirect attributes.
      * @param request The received request.
+     * @param request The HTTP response.
      * @return The model and view information.
      */
     @RequestMapping(method = RequestMethod.POST, value = "/{domain}/uploadm")
@@ -278,10 +301,11 @@ public class UploadController {
                                       @RequestParam(value = "uriToValidate-external_default", required = false) String[] externalSchemaUri,
                                       @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
                                       RedirectAttributes redirectAttributes,
-                                      HttpServletRequest request) {
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
 
         setMinimalUIFlag(request, true);
-        ModelAndView mv = handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request);
+        ModelAndView mv = handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
 
         Map<String, Object> attributes = mv.getModel();
         attributes.put("minimalUI", true);
@@ -311,10 +335,10 @@ public class UploadController {
      * @param validationType The validation type.
      * @param parentFolder The temporary folder to use for file system storage.
      * @return The list of user-provided artifacts.
-     * @throws Exception IF an error occurs.
+     * @throws IOException If an IO error occurs.
      */
     private List<FileInfo> getExternalFiles(String[] externalContentType, MultipartFile[] externalFiles, String[] externalUri,
-                                            ValidationArtifactInfo schemaInfo, String validationType, File parentFolder) throws Exception {
+                                            ValidationArtifactInfo schemaInfo, String validationType, File parentFolder) throws IOException {
         List<FileInfo> lis = new ArrayList<>();
         if (externalContentType != null) {
             for(int i=0; i<externalContentType.length; i++) {
@@ -338,7 +362,7 @@ public class UploadController {
             return lis;
         } else {
             logger.error("An error occurred during the validation of the external schema(s).");
-            throw new Exception("An error occurred during the validation of the external Schema(s).");
+            throw new ValidatorException("validator.label.exception.errorDuringValidationExternalSchemas");
         }
 
     }

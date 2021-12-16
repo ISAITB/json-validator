@@ -9,6 +9,7 @@ import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationConstants;
 import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.Utils;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
@@ -29,6 +30,7 @@ import javax.xml.ws.WebServiceContext;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Spring component that realises the validation SOAP service.
@@ -126,15 +128,16 @@ public class ValidationServiceImpl implements ValidationService {
             ValidationArtifactCombinationApproach externalSchemaCombinationApproach = validateExternalSchemaCombinationApproach(validateRequest, validationType);
             ValidationResponse result = new ValidationResponse();
 			// Execute validation
-            JSONValidator validator = ctx.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, locationAsPointer, addInputToReport);
+            JSONValidator validator = ctx.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, new LocalisationHelper(domainConfig, Locale.ENGLISH), locationAsPointer, addInputToReport);
 			result.setReport(validator.validate());
 			return result;
         } catch (ValidatorException e) {
-            logger.error("Validation error", e);
-            throw e;
+            logger.error(e.getMessageForLog(), e);
+            throw new ValidatorException(e.getMessageForDisplay(new LocalisationHelper(Locale.ENGLISH)), true);
 		} catch (Exception e) {
 			logger.error("Unexpected error", e);
-			throw new ValidatorException(e);
+            var message = new LocalisationHelper(Locale.ENGLISH).localise(ValidatorException.MESSAGE_DEFAULT);
+            throw new ValidatorException(message, e, true, (Object[]) null);
 		} finally {
     	    // Cleanup.
     	    if (tempFolderPath.exists()) {
@@ -157,7 +160,7 @@ public class ValidationServiceImpl implements ValidationService {
             try {
                 approach = ValidationArtifactCombinationApproach.byName(inputs.get(0).getValue());
             } catch (IllegalArgumentException e) {
-                throw new ValidatorException("Invalid schema combination approach ["+inputs.get(0).getValue()+"].", e);
+                throw new ValidatorException("validator.label.exception.invalidSchemaCombinationApproach", e, inputs.get(0).getValue());
             }
         } else {
             approach = domainConfig.getSchemaInfo(validationType).getExternalArtifactCombinationApproach();
