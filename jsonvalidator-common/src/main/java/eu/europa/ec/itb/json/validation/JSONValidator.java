@@ -201,6 +201,7 @@ public class JSONValidator {
         request.getInput().add(Utils.createInputItem("domain", domainConfig.getDomainName()));
         request.getInput().add(Utils.createInputItem("validationType", validationType));
         request.getInput().add(Utils.createInputItem("tempFolder", pluginTmpFolder.getAbsolutePath()));
+        request.getInput().add(Utils.createInputItem("locale", localiser.getLocale().toString()));
         return request;
     }
 
@@ -310,7 +311,10 @@ public class JSONValidator {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }
         List<String> errorMessages = new ArrayList<>();
-        ProblemHandler handler = jsonValidationService.createProblemPrinterBuilder(errorMessages::add).withLocation(true).build();
+        ProblemHandler handler = jsonValidationService.createProblemPrinterBuilder(errorMessages::add)
+                .withLocation(true)
+                .withLocale(localiser.getLocale())
+                .build();
         try (JsonParser parser = jsonValidationService.createParser(inputFileToValidate.toPath(), schema, handler)) {
             while (parser.hasNext()) {
                 parser.next();
