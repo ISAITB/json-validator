@@ -18,7 +18,7 @@ import java.util.Set;
 public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.config.ApplicationConfig {
 
     private Set<String> acceptedSchemaExtensions;
-    private Map<String, String> defaultLabels = new HashMap<>();
+    private final Map<String, String> defaultLabels = new HashMap<>();
     private Set<String> acceptedMimeTypes;
     private String defaultContentToValidateDescription;
     private String defaultEmbeddingMethodDescription;
@@ -26,6 +26,7 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
     private String defaultExternalSchemaCombinationApproachDescription;
     private String defaultValidationTypeDescription;
     private String defaultLocationAsPointerDescription;
+    private String defaultLocaleDescription;
     private Map<String, String> branchErrorMessages;
     private Set<String> branchErrorMessageValues;
 
@@ -170,6 +171,20 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
     }
 
     /**
+     * @return The default web service input description for the locale to use.
+     */
+    public String getDefaultLocaleDescription() {
+        return defaultLocaleDescription;
+    }
+
+    /**
+     * @param defaultLocaleDescription The default web service input description for the locale to use.
+     */
+    public void setDefaultLocaleDescription(String defaultLocaleDescription) {
+        this.defaultLocaleDescription = defaultLocaleDescription;
+    }
+
+    /**
      * Initialise the configuration.
      */
     @PostConstruct
@@ -182,6 +197,7 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
         defaultLabels.put(ValidationConstants.INPUT_VALIDATION_TYPE, defaultValidationTypeDescription);
         defaultLabels.put(ValidationConstants.INPUT_LOCATION_AS_POINTER, defaultLocationAsPointerDescription);
         defaultLabels.put(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, defaultExternalSchemaCombinationApproachDescription);
+        defaultLabels.put(ValidationConstants.INPUT_LOCALE, defaultLocaleDescription);
         // Branch error messages.
         branchErrorMessageValues = new HashSet<>(getBranchErrorMessages().values());
     }
