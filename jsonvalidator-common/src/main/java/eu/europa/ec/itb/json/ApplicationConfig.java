@@ -26,6 +26,7 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
     private String defaultExternalSchemaCombinationApproachDescription;
     private String defaultValidationTypeDescription;
     private String defaultLocationAsPointerDescription;
+    private String defaultAddInputToReportDescription;
     private String defaultLocaleDescription;
     private Map<String, String> branchErrorMessages;
     private Set<String> branchErrorMessageValues;
@@ -178,6 +179,20 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
     }
 
     /**
+     * @return The default web service input description for the add input to report option.
+     */
+    public String getDefaultAddInputToReportDescription() {
+        return defaultAddInputToReportDescription;
+    }
+
+    /**
+     * @param defaultAddInputToReportDescription The default web service input description for the add input to report option.
+     */
+    public void setDefaultAddInputToReportDescription(String defaultAddInputToReportDescription) {
+        this.defaultAddInputToReportDescription = defaultAddInputToReportDescription;
+    }
+
+    /**
      * @param defaultLocaleDescription The default web service input description for the locale to use.
      */
     public void setDefaultLocaleDescription(String defaultLocaleDescription) {
@@ -197,6 +212,7 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
         defaultLabels.put(ValidationConstants.INPUT_VALIDATION_TYPE, defaultValidationTypeDescription);
         defaultLabels.put(ValidationConstants.INPUT_LOCATION_AS_POINTER, defaultLocationAsPointerDescription);
         defaultLabels.put(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, defaultExternalSchemaCombinationApproachDescription);
+        defaultLabels.put(ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, defaultAddInputToReportDescription);
         defaultLabels.put(ValidationConstants.INPUT_LOCALE, defaultLocaleDescription);
         // Branch error messages.
         branchErrorMessageValues = new HashSet<>(getBranchErrorMessages().values());
