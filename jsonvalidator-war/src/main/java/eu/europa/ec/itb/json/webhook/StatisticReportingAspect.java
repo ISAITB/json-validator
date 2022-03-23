@@ -1,14 +1,9 @@
 package eu.europa.ec.itb.json.webhook;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.ws.handler.MessageContext;
-
 import com.gitb.tr.TAR;
 import com.gitb.tr.TestResultType;
-
+import eu.europa.ec.itb.json.gitb.ValidationServiceImpl;
+import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.validation.commons.war.webhook.StatisticReporting;
 import eu.europa.ec.itb.validation.commons.war.webhook.UsageData;
 import org.aspectj.lang.JoinPoint;
@@ -19,13 +14,13 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import eu.europa.ec.itb.json.ApplicationConfig;
-import eu.europa.ec.itb.json.gitb.ValidationServiceImpl;
-import eu.europa.ec.itb.json.validation.JSONValidator;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.ws.handler.MessageContext;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Aspect that advises the application's entry points to extract and send usage statistics (if enabled).
@@ -37,9 +32,6 @@ public class StatisticReportingAspect extends StatisticReporting {
 
     private static final Logger logger = LoggerFactory.getLogger(StatisticReportingAspect.class);
     private static final ThreadLocal<Map<String, String>> adviceContext = new ThreadLocal<>();
-
-    @Autowired
-    private ApplicationConfig config;
 
     /**
      * Pointcut for minimal WEB validation.
@@ -61,8 +53,8 @@ public class StatisticReportingAspect extends StatisticReporting {
      * @param joinPoint The original call's information.
      */
     @Before("minimalUploadValidation() || uploadValidation()")
-    public void getUploadContext(JoinPoint joinPoint) throws Throwable {
-        Map<String, String> contextParams = new HashMap<String, String>();
+    public void getUploadContext(JoinPoint joinPoint) {
+        Map<String, String> contextParams = new HashMap<>();
         contextParams.put("api", StatisticReportingConstants.WEB_API);
         if (config.getWebhook().isStatisticsEnableCountryDetection()) {
             HttpServletRequest request = getHttpRequest(joinPoint);
@@ -80,8 +72,8 @@ public class StatisticReportingAspect extends StatisticReporting {
      * @param joinPoint The original call's information.
      */
     @Before(value = "execution(public * eu.europa.ec.itb.json.gitb.ValidationServiceImpl.validate(..))")
-    public void getSoapCallContext(JoinPoint joinPoint) throws Throwable {
-        Map<String, String> contextParams = new HashMap<String, String>();
+    public void getSoapCallContext(JoinPoint joinPoint) {
+        Map<String, String> contextParams = new HashMap<>();
         contextParams.put("api", StatisticReportingConstants.SOAP_API);
         if (config.getWebhook().isStatisticsEnableCountryDetection()) {
             ValidationServiceImpl validationService = (ValidationServiceImpl) joinPoint.getTarget();
@@ -117,9 +109,8 @@ public class StatisticReportingAspect extends StatisticReporting {
         } catch (Exception ex) {
             // Ensure unexpected errors never block validation processing
             logger.warn("Unexpected error during statistics reporting", ex);
-        } finally {
-            return report;
         }
+        return report;
     }
 
     /**

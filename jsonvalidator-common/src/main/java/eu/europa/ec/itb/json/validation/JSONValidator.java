@@ -55,7 +55,7 @@ public class JSONValidator {
     @Autowired
     private PluginManager pluginManager = null;
     @Autowired
-    private DomainPluginConfigProvider pluginConfigProvider = null;
+    private DomainPluginConfigProvider<DomainConfig> pluginConfigProvider = null;
     @Autowired
     private ApplicationConfig appConfig = null;
     @Autowired

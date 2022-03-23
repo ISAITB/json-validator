@@ -157,7 +157,7 @@ public class ValidationServiceImpl implements ValidationService {
     private ValidationArtifactCombinationApproach validateExternalSchemaCombinationApproach(ValidateRequest validateRequest, String validationType) {
         List<AnyContent> inputs = Utils.getInputFor(validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH);
         ValidationArtifactCombinationApproach approach;
-        if (inputs.size() > 0) {
+        if (!inputs.isEmpty()) {
             try {
                 approach = ValidationArtifactCombinationApproach.byName(inputs.get(0).getValue());
             } catch (IllegalArgumentException e) {

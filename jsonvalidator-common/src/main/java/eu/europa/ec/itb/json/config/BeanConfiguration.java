@@ -1,5 +1,6 @@
 package eu.europa.ec.itb.json.config;
 
+import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.config.DomainPluginConfigProvider;
 import org.leadpony.justify.api.JsonValidationService;
 import org.springframework.context.annotation.Bean;
@@ -17,8 +18,8 @@ public class BeanConfiguration {
      * @return The default plugin provider.
      */
     @Bean
-    public DomainPluginConfigProvider pluginConfigProvider() {
-        return new DomainPluginConfigProvider();
+    public DomainPluginConfigProvider<DomainConfig> pluginConfigProvider() {
+        return new DomainPluginConfigProvider<>();
     }
 
     /**
