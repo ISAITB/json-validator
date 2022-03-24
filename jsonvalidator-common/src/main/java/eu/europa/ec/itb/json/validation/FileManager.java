@@ -99,6 +99,7 @@ public class FileManager extends BaseFileManager<ApplicationConfig> {
      * @param domainConfig The current domain's configuration.
      * @param <R> The specific type of domain configuration class.
      */
+    @Override
     public <R extends DomainConfig> void saveReport(TAR report, String xmlID, R domainConfig) {
         File outputFile = new File(getReportFolder(), getReportFileNameXml(xmlID));
         saveReport(report, outputFile, domainConfig);
