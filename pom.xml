@@ -63,6 +63,8 @@
         <version.gson>2.8.6</version.gson>
         <version.tika>2.1.0</version.tika>
         <version.aspectjWeaver>1.9.6</version.aspectjWeaver>
+        <!-- Used to override default from Spring Boot -->
+        <jackson-bom.version>2.13.2.20220324</jackson-bom.version>
     </properties>
 
     <repositories>
