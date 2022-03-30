@@ -82,6 +82,16 @@ public class FileManager extends BaseFileManager<ApplicationConfig> {
     }
 
     /**
+     * Returns the name of a CSV report file based on the provided identifier.
+     *
+     * @param uuid The UUID to consider.
+     * @return The file name.
+     */
+    public String getReportFileNameCsv(String uuid) {
+        return "TAR-"+uuid+".csv";
+    }
+
+    /**
      * Returns the name of an XML report file based on the provided identifier.
      *
      * @param uuid The UUID to consider.
