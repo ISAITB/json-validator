@@ -5,15 +5,9 @@ import com.gitb.core.ValueEmbeddingEnumeration;
 import com.gitb.tr.*;
 import com.gitb.vs.ValidateRequest;
 import com.gitb.vs.ValidationResponse;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonSyntaxException;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
-import eu.europa.ec.itb.validation.commons.FileInfo;
-import eu.europa.ec.itb.validation.commons.LocalisationHelper;
-import eu.europa.ec.itb.validation.commons.Utils;
+import eu.europa.ec.itb.validation.commons.*;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.config.DomainPluginConfigProvider;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
@@ -32,7 +26,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -61,55 +54,16 @@ public class JSONValidator {
     @Autowired
     private JsonValidationService jsonValidationService = null;
 
-    private ObjectFactory objectFactory = new ObjectFactory();
-    private File inputFileToValidate;
-    private final DomainConfig domainConfig;
-    private final boolean locationAsPointer;
-    private final boolean addInputToReport;
-    private String validationType;
-    private List<FileInfo> externalSchemaFileInfo;
-    private final ValidationArtifactCombinationApproach externalSchemaCombinationApproach;
-    private final LocalisationHelper localiser;
+    private final ObjectFactory objectFactory = new ObjectFactory();
+    private final ValidationSpecs specs;
 
     /**
      * Constructor.
      *
-     * @param inputFileToValidate The file that contains the JSON content to validate.
-     * @param validationType The validation type to consider (can be null if there is only one).
-     * @param externalSchemas The list of external (user-provided) JSON schemas.
-     * @param externalSchemaCombinationApproach The way in which multiple user-provided JSON schemas are to be combined.
-     * @param domainConfig The current domain configuration.
-     * @param localiser The helper class for localisations.
-     * @param locationAsPointer True if the location for error messages should be a JSON pointer.
+     * @param specs The specifications with which to carry out the validation.
      */
-    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, LocalisationHelper localiser, boolean locationAsPointer) {
-        this(inputFileToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, localiser, locationAsPointer, true);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param inputFileToValidate The file that contains the JSON content to validate.
-     * @param validationType The validation type to consider (can be null if there is only one).
-     * @param externalSchemas The list of external (user-provided) JSON schemas.
-     * @param externalSchemaCombinationApproach The way in which multiple user-provided JSON schemas are to be combined.
-     * @param domainConfig The current domain configuration.
-     * @param locationAsPointer True if the location for error messages should be a JSON pointer.
-     * @param localiser The helper class for localisations.
-     * @param addInputToReport True if the provided input should be added as context to the produced TAR report.
-     */
-    public JSONValidator(File inputFileToValidate, String validationType, List<FileInfo> externalSchemas, ValidationArtifactCombinationApproach externalSchemaCombinationApproach, DomainConfig domainConfig, LocalisationHelper localiser, boolean locationAsPointer, boolean addInputToReport) {
-        this.inputFileToValidate = inputFileToValidate;
-        this.validationType = validationType;
-        this.domainConfig = domainConfig;
-        this.externalSchemaFileInfo = externalSchemas;
-        this.externalSchemaCombinationApproach = externalSchemaCombinationApproach;
-        this.locationAsPointer = locationAsPointer;
-        this.addInputToReport = addInputToReport;
-        this.localiser = localiser;
-        if (validationType == null) {
-            this.validationType = domainConfig.getType().get(0);
-        }
+    public JSONValidator(ValidationSpecs specs) {
+        this.specs = specs;
     }
 
     /**
@@ -118,7 +72,7 @@ public class JSONValidator {
      * @return The identifier.
      */
     public String getDomain() {
-        return this.domainConfig.getDomain();
+        return specs.getDomainConfig().getDomain();
     }
 
     /**
@@ -127,27 +81,56 @@ public class JSONValidator {
      * @return The validation type.
      */
     public String getValidationType() { 
-        return this.validationType;
+        return specs.getValidationType();
     }
 
     /**
      * Run the validation and produce the report.
      *
-     * @return The validation TAR report.
+     * @return The validation TAR reports (detailed and aggregated).
      */
-    public TAR validate() {
-        TAR validationResult;
+    public ReportPair validate() {
+        TAR overallReportDetailed;
+        TAR overallReportAggregated;
         try {
-            fileManager.signalValidationStart(domainConfig.getDomainName());
-            validationResult = validateInternal();
+            fileManager.signalValidationStart(specs.getDomainConfig().getDomainName());
+            var coreReports = validateInternal();
+            overallReportDetailed = coreReports.getDetailedReport();
+            overallReportAggregated = coreReports.getAggregateReport();
         } finally {
-            fileManager.signalValidationEnd(domainConfig.getDomainName());
+            fileManager.signalValidationEnd(specs.getDomainConfig().getDomainName());
         }
-        TAR pluginResult = validateAgainstPlugins();
-        if (pluginResult != null) {
-            validationResult = Utils.mergeReports(new TAR[] {validationResult, pluginResult});
+        TAR pluginReport = validateAgainstPlugins();
+        if (pluginReport != null) {
+            overallReportDetailed = Utils.mergeReports(new TAR[] {overallReportDetailed, pluginReport});
+            if (specs.isProduceAggregateReport()) {
+                overallReportAggregated = Utils.mergeReports(new TAR[] {overallReportAggregated, Utils.toAggregatedTAR(pluginReport, specs.getLocalisationHelper())});
+            }
         }
-        return validationResult;
+        if (specs.getDomainConfig().isReportsOrdered()) {
+            if (overallReportDetailed.getReports() != null) {
+                overallReportDetailed.getReports().getInfoOrWarningOrError().sort(new ReportItemComparator());
+            }
+            if (specs.isProduceAggregateReport() && overallReportAggregated.getReports() != null) {
+                overallReportAggregated.getReports().getInfoOrWarningOrError().sort(new ReportItemComparator());
+            }
+        }
+        if (specs.isAddInputToReport()) {
+            overallReportDetailed.setContext(new AnyContent());
+            overallReportDetailed.getContext().setType("map");
+            AnyContent inputReportContent = new AnyContent();
+            inputReportContent.setType("string");
+            inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
+            inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
+            inputReportContent.setMimeType("application/json");
+            try {
+                inputReportContent.setValue(FileUtils.readFileToString(specs.getInput(), StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to generate output report", e);
+            }
+            overallReportDetailed.getContext().getItem().add(inputReportContent);
+        }
+        return new ReportPair(overallReportDetailed, overallReportAggregated);
     }
 
     /**
@@ -157,9 +140,9 @@ public class JSONValidator {
      */
     private TAR validateAgainstPlugins() {
         TAR pluginReport = null;
-        ValidationPlugin[] plugins = pluginManager.getPlugins(pluginConfigProvider.getPluginClassifier(domainConfig, validationType));
+        ValidationPlugin[] plugins = pluginManager.getPlugins(pluginConfigProvider.getPluginClassifier(specs.getDomainConfig(), specs.getValidationType()));
         if (plugins != null && plugins.length > 0) {
-            File pluginTmpFolder = new File(inputFileToValidate.getParentFile(), UUID.randomUUID().toString());
+            File pluginTmpFolder = new File(specs.getInput().getParentFile(), UUID.randomUUID().toString());
             try {
                 pluginTmpFolder.mkdirs();
                 ValidateRequest pluginInput = preparePluginInput(pluginTmpFolder);
@@ -192,38 +175,17 @@ public class JSONValidator {
     private ValidateRequest preparePluginInput(File pluginTmpFolder) {
         File pluginInputFile = new File(pluginTmpFolder, UUID.randomUUID().toString()+".json");
         try {
-            FileUtils.copyFile(inputFileToValidate, pluginInputFile);
+            FileUtils.copyFile(specs.getInput(), pluginInputFile);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to copy input file for plugin", e);
         }
         ValidateRequest request = new ValidateRequest();
         request.getInput().add(Utils.createInputItem("contentToValidate", pluginInputFile.getAbsolutePath()));
-        request.getInput().add(Utils.createInputItem("domain", domainConfig.getDomainName()));
-        request.getInput().add(Utils.createInputItem("validationType", validationType));
+        request.getInput().add(Utils.createInputItem("domain", specs.getDomainConfig().getDomainName()));
+        request.getInput().add(Utils.createInputItem("validationType", specs.getValidationType()));
         request.getInput().add(Utils.createInputItem("tempFolder", pluginTmpFolder.getAbsolutePath()));
-        request.getInput().add(Utils.createInputItem("locale", localiser.getLocale().toString()));
+        request.getInput().add(Utils.createInputItem("locale", specs.getLocalisationHelper().getLocale().toString()));
         return request;
-    }
-
-    /**
-     * Pretty-print the JSON content to ensure meaningful location information.
-     *
-     * @param input The input to process.
-     * @return The pretty-printed result.
-     */
-    private File prettyPrint(File input) {
-        try (FileReader in = new FileReader(input)) {
-            JsonElement json = com.google.gson.JsonParser.parseReader(in);
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String jsonOutput = gson.toJson(json);
-            File output = new File(input.getParent(), input.getName() + ".pretty");
-            FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
-            return output;
-        } catch (JsonSyntaxException e) {
-            throw new ValidatorException("validator.label.exception.providedInputNotJSON", e);
-        } catch (IOException e) {
-            throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
-        }
     }
 
     /**
@@ -257,7 +219,7 @@ public class JSONValidator {
             } else if (successCount == 1) {
                 aggregatedErrorMessages.clear();
             } else if (successCount > 1) {
-                aggregatedErrorMessages.add(localiser.localise("validator.label.exception.onlyOneSchemaShouldBeValid", successCount));
+                aggregatedErrorMessages.add(specs.getLocalisationHelper().localise("validator.label.exception.onlyOneSchemaShouldBeValid", successCount));
             }
         } else {
             // Any of the schemas should validate successfully.
@@ -313,9 +275,9 @@ public class JSONValidator {
         List<String> errorMessages = new ArrayList<>();
         ProblemHandler handler = jsonValidationService.createProblemPrinterBuilder(errorMessages::add)
                 .withLocation(true)
-                .withLocale(localiser.getLocale())
+                .withLocale(specs.getLocalisationHelper().getLocale())
                 .build();
-        try (JsonParser parser = jsonValidationService.createParser(inputFileToValidate.toPath(), schema, handler)) {
+        try (JsonParser parser = jsonValidationService.createParser(specs.getInput().toPath(), schema, handler)) {
             while (parser.hasNext()) {
                 parser.next();
             }
@@ -326,53 +288,39 @@ public class JSONValidator {
     /**
      * Run the internal steps needed for the validation.
      *
-     * @return The resulting validation report.
+     * @return The resulting validation reports (detailed and aggregate).
      */
-    private TAR validateInternal() {
-        // Pretty-print input to get good location results.
-        inputFileToValidate = prettyPrint(inputFileToValidate);
+    private ReportPair validateInternal() {
         List<String> aggregatedErrorMessages = new ArrayList<>();
-        List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredValidationArtifacts(domainConfig, validationType);
+        List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredValidationArtifacts(specs.getDomainConfig(), specs.getValidationType());
         if (!preconfiguredSchemaFiles.isEmpty()) {
-            ValidationArtifactCombinationApproach combinationApproach = domainConfig.getSchemaInfo(validationType).getArtifactCombinationApproach();
+            ValidationArtifactCombinationApproach combinationApproach = specs.getDomainConfig().getSchemaInfo(specs.getValidationType()).getArtifactCombinationApproach();
             aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(preconfiguredSchemaFiles, combinationApproach));
         }
-        if (!externalSchemaFileInfo.isEmpty()) {
+        if (!specs.getExternalSchemas().isEmpty()) {
             // We apply "allOf" semantics when there are both preconfigured and external schemas.
-            aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach));
+            aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(specs.getExternalSchemas(), specs.getExternalSchemaCombinationApproach()));
         }
-        TAR report = createReport(ErrorMessage.processMessages(aggregatedErrorMessages, appConfig.getBranchErrorMessageValues()));
-        if (addInputToReport) {
-            report.setContext(new AnyContent());
-            report.getContext().setType("map");
-            AnyContent inputReportContent = new AnyContent();
-            inputReportContent.setType("string");
-            inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
-            inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
-            inputReportContent.setMimeType("application/json");
-            try {
-                inputReportContent.setValue(FileUtils.readFileToString(inputFileToValidate, StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to generate output report", e);
-            }
-            report.getContext().getItem().add(inputReportContent);
-        }
-        return report;
+        return createReport(ErrorMessage.processMessages(aggregatedErrorMessages, appConfig.getBranchErrorMessageValues()));
     }
 
     /**
      * Create a TAR validation report from a list of internal error message texts.
      *
      * @param errorMessages The error messages to process.
-     * @return The corresponding report.
+     * @return The corresponding reports (detailed and aggregate).
      */
-    private TAR createReport(List<ErrorMessage> errorMessages) {
+    private ReportPair createReport(List<ErrorMessage> errorMessages) {
         TAR report = new TAR();
         report.setDate(Utils.getXMLGregorianCalendarDateTime());
         report.setCounters(new ValidationCounters());
         report.getCounters().setNrOfWarnings(BigInteger.ZERO);
         report.getCounters().setNrOfAssertions(BigInteger.ZERO);
         report.setReports(new TestAssertionGroupReportsType());
+        AggregateReportItems aggregateReportItems = null;
+        if (specs.isProduceAggregateReport()) {
+            aggregateReportItems = new AggregateReportItems(objectFactory, specs.getLocalisationHelper());
+        }
         if (errorMessages == null || errorMessages.isEmpty()) {
             report.setResult(TestResultType.SUCCESS);
             report.getCounters().setNrOfErrors(BigInteger.ZERO);
@@ -382,15 +330,32 @@ public class JSONValidator {
             for (ErrorMessage errorMessage: errorMessages) {
                 BAR error = new BAR();
                 error.setDescription(errorMessage.getMessage());
-                if (locationAsPointer) {
+                if (specs.isLocationAsPointer()) {
                     error.setLocation(errorMessage.getLocationPointer());
                 } else {
                     error.setLocation(ValidationConstants.INPUT_CONTENT+":"+errorMessage.getLocationLine()+":"+errorMessage.getLocationColumn());
                 }
-                report.getReports().getInfoOrWarningOrError().add(objectFactory.createTestAssertionGroupReportsTypeError(error));
+                var elementForReport = objectFactory.createTestAssertionGroupReportsTypeError(error);
+                report.getReports().getInfoOrWarningOrError().add(elementForReport);
+                if (aggregateReportItems != null) {
+                    // Aggregate based on severity and message (without location prefix).
+                    aggregateReportItems.updateForReportItem(elementForReport, e -> String.format("%s|%s", elementForReport.getName().getLocalPart(), errorMessage.getMessageWithoutLocation()));
+                }
             }
         }
-        return report;
+        // Create the aggregate report if needed.
+        TAR aggregateReport = null;
+        if (aggregateReportItems != null) {
+            aggregateReport = new TAR();
+            aggregateReport.setContext(new AnyContent());
+            aggregateReport.setResult(report.getResult());
+            aggregateReport.setCounters(report.getCounters());
+            aggregateReport.setDate(report.getDate());
+            aggregateReport.setName(report.getName());
+            aggregateReport.setReports(new TestAssertionGroupReportsType());
+            aggregateReport.getReports().getInfoOrWarningOrError().addAll(aggregateReportItems.getReportItems());
+        }
+        return new ReportPair(report, aggregateReport);
     }
 
 }

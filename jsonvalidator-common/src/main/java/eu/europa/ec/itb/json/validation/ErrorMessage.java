@@ -13,6 +13,7 @@ import java.util.Set;
 public class ErrorMessage {
 
     private String message;
+    private String messageWithoutLocation;
     private String branch;
     private Integer locationLine;
     private Integer locationColumn;
@@ -23,7 +24,7 @@ public class ErrorMessage {
      * Process the provided raised messages and transform them to a list of DTOs.
      *
      * @param errorMessages The error messages.
-     * @param branchMessages The messages linked to different validation  branches.
+     * @param branchMessages The messages linked to different validation branches.
      * @return The error message DTOs to process.
      */
     public static List<ErrorMessage> processMessages(List<String> errorMessages, Set<String> branchMessages) {
@@ -117,6 +118,7 @@ public class ErrorMessage {
         if (message == null) {
             message = errorMessage;
         }
+        msgObj.messageWithoutLocation = message;
         if (StringUtils.isNotBlank(msgObj.getLocationPointer())) {
             message = "["+msgObj.getLocationPointer()+"] " + message;
         }
@@ -206,5 +208,12 @@ public class ErrorMessage {
      */
     public void setInSet(boolean inSet) {
         this.inSet = inSet;
+    }
+
+    /**
+     * @return The error message without any location information.
+     */
+    public String getMessageWithoutLocation() {
+        return messageWithoutLocation;
     }
 }

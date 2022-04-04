@@ -1,9 +1,9 @@
 package eu.europa.ec.itb.json.standalone;
 
-import com.gitb.tr.TAR;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
+import eu.europa.ec.itb.json.validation.ValidationSpecs;
 import eu.europa.ec.itb.validation.commons.CsvReportGenerator;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
@@ -128,8 +128,11 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
             for (ValidationInput input: inputs) {
                 LOGGER_FEEDBACK.info("\nValidating {} of {} ...", i+1, inputs.size());
                 try {
-                    JSONValidator validator = ctx.getBean(JSONValidator.class, input.getInputFile(), validationType, externalSchemaFileInfo, externalSchemaCombinationApproach, domainConfig, localiser, false);
-                    TAR report = validator.validate();
+                    JSONValidator validator = ctx.getBean(JSONValidator.class, ValidationSpecs.builder(input.getInputFile(), localiser, domainConfig)
+                            .withValidationType(validationType)
+                            .withExternalSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach)
+                            .build());
+                    var report = validator.validate().getDetailedReport();
                     if (report == null) {
                         summary.append("\nNo validation report was produced.\n");
                     } else {
