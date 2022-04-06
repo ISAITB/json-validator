@@ -75,30 +75,33 @@ public class FileManager extends BaseFileManager<ApplicationConfig> {
      * Returns the name of an PDF report file based on the provided identifier.
      *
      * @param uuid The UUID to consider.
+     * @param aggregate Whether the report is an aggregate.
      * @return The file name.
      */
-    public String getReportFileNamePdf(String uuid) {
-        return "TAR-"+uuid+".pdf";
+    public String getReportFileNamePdf(String uuid, boolean aggregate) {
+        return "TAR-"+uuid+(aggregate?"_aggregate":"")+".pdf";
     }
 
     /**
      * Returns the name of a CSV report file based on the provided identifier.
      *
      * @param uuid The UUID to consider.
+     * @param aggregate Whether the report is an aggregate.
      * @return The file name.
      */
-    public String getReportFileNameCsv(String uuid) {
-        return "TAR-"+uuid+".csv";
+    public String getReportFileNameCsv(String uuid, boolean aggregate) {
+        return "TAR-"+uuid+(aggregate?"_aggregate":"")+".csv";
     }
 
     /**
      * Returns the name of an XML report file based on the provided identifier.
      *
      * @param uuid The UUID to consider.
+     * @param aggregate Whether the report is an aggregate.
      * @return The file name.
      */
-    public String getReportFileNameXml(String uuid) {
-        return "TAR-"+uuid+".xml";
+    public String getReportFileNameXml(String uuid, boolean aggregate) {
+        return "TAR-"+uuid+(aggregate?"_aggregate":"")+".xml";
     }
 
     /**
@@ -107,11 +110,12 @@ public class FileManager extends BaseFileManager<ApplicationConfig> {
      * @param report The report to serialise.
      * @param xmlID The UUID to use as part of the report's file name.
      * @param domainConfig The current domain's configuration.
+     * @param aggregate Whether the report is an aggregate.
      * @param <R> The specific type of domain configuration class.
      */
     @Override
-    public <R extends DomainConfig> void saveReport(TAR report, String xmlID, R domainConfig) {
-        File outputFile = new File(getReportFolder(), getReportFileNameXml(xmlID));
+    public <R extends DomainConfig> void saveReport(TAR report, String xmlID, R domainConfig, boolean aggregate) {
+        File outputFile = new File(getReportFolder(), getReportFileNameXml(xmlID, aggregate));
         saveReport(report, outputFile, domainConfig);
     }
 

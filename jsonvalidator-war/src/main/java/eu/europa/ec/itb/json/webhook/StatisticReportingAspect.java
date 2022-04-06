@@ -4,6 +4,7 @@ import com.gitb.tr.TAR;
 import com.gitb.tr.TestResultType;
 import eu.europa.ec.itb.json.gitb.ValidationServiceImpl;
 import eu.europa.ec.itb.json.validation.JSONValidator;
+import eu.europa.ec.itb.validation.commons.ReportPair;
 import eu.europa.ec.itb.validation.commons.war.webhook.StatisticReporting;
 import eu.europa.ec.itb.validation.commons.war.webhook.UsageData;
 import org.aspectj.lang.JoinPoint;
@@ -102,8 +103,8 @@ public class StatisticReportingAspect extends StatisticReporting {
             String api = usageParams.get("api");
             // obtain the result of the model
             String ip = usageParams.get("ip");
-            TAR reportTAR = (TAR) report;
-            UsageData.Result result = extractResult(reportTAR);
+            ReportPair reportTARs = (ReportPair) report;
+            UsageData.Result result = extractResult(reportTARs.getDetailedReport());
             // Send the usage data
             sendUsageData(validatorId, domain, api, validationType, result, ip);
         } catch (Exception ex) {

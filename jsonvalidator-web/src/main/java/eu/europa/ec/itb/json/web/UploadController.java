@@ -1,13 +1,14 @@
 package eu.europa.ec.itb.json.web;
 
-import com.gitb.tr.TAR;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.DomainConfigCache;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
+import eu.europa.ec.itb.json.validation.ValidationSpecs;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
+import eu.europa.ec.itb.validation.commons.Utils;
 import eu.europa.ec.itb.validation.commons.ValidatorChannel;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
@@ -175,11 +176,17 @@ public class UploadController {
                     proceedToValidate = false;
                 }
                 if (proceedToValidate) {
-                    ValidationArtifactCombinationApproach externalSchemaCombinationApproach = getSchemaCombinationApproach(validationType, combinationType, config);
-                    JSONValidator validator = beans.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, config, localisationHelper, false);
-                    TAR report = validator.validate();
-                    attributes.put(PARAM_REPORT, report);
-                    attributes.put(PARAM_DATE, report.getDate().toString());
+                    JSONValidator validator = beans.getBean(JSONValidator.class, ValidationSpecs.builder(contentToValidate, localisationHelper, config)
+                            .withValidationType(validationType)
+                            .withExternalSchemas(externalSchemas, getSchemaCombinationApproach(validationType, combinationType, config))
+                            .addInputToReport()
+                            .produceAggregateReport()
+                            .build());
+                    var reports = validator.validate();
+                    attributes.put(PARAM_REPORT, reports.getDetailedReport());
+                    attributes.put(PARAM_AGGREGATE_REPORT, reports.getAggregateReport());
+                    attributes.put(PARAM_SHOW_AGGREGATE_REPORT, Utils.aggregateDiffers(reports.getDetailedReport(), reports.getAggregateReport()));
+                    attributes.put(PARAM_DATE, reports.getDetailedReport().getDate().toString());
                     if (contentType.equals(CONTENT_TYPE_FILE)) {
                         attributes.put(PARAM_FILE_NAME, file.getOriginalFilename());
                     } else if(contentType.equals(CONTENT_TYPE_URI)) {
@@ -189,9 +196,10 @@ public class UploadController {
                     }
                     // Cache detailed report.
                     try {
-                        String inputID = fileManager.writeJson(config.getDomainName(), report.getContext().getItem().get(0).getValue());
+                        String inputID = fileManager.writeJson(config.getDomainName(), reports.getDetailedReport().getContext().getItem().get(0).getValue());
                         attributes.put(PARAM_INPUT_ID, inputID);
-                        fileManager.saveReport(report, inputID, config);
+                        fileManager.saveReport(reports.getDetailedReport(), inputID, config);
+                        fileManager.saveReport(reports.getAggregateReport(), inputID, config, true);
                     } catch (IOException e) {
                         logger.error("Error generating detailed report [" + e.getMessage() + "]", e);
                         attributes.put(PARAM_MESSAGE, "Error generating detailed report: " + e.getMessage());

@@ -8,6 +8,7 @@ import eu.europa.ec.itb.json.InputHelper;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationConstants;
+import eu.europa.ec.itb.json.validation.ValidationSpecs;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.Utils;
@@ -129,8 +130,13 @@ public class ValidationServiceImpl implements ValidationService {
             ValidationArtifactCombinationApproach externalSchemaCombinationApproach = validateExternalSchemaCombinationApproach(validateRequest, validationType);
             ValidationResponse result = new ValidationResponse();
 			// Execute validation
-            JSONValidator validator = ctx.getBean(JSONValidator.class, contentToValidate, validationType, externalSchemas, externalSchemaCombinationApproach, domainConfig, localiser, locationAsPointer, addInputToReport);
-			result.setReport(validator.validate());
+            var builder = ValidationSpecs.builder(contentToValidate, localiser, domainConfig)
+                    .withValidationType(validationType)
+                    .withExternalSchemas(externalSchemas, externalSchemaCombinationApproach);
+            if (locationAsPointer) builder = builder.locationAsPointer();
+            if (addInputToReport) builder = builder.addInputToReport();
+            JSONValidator validator = ctx.getBean(JSONValidator.class, builder.build());
+			result.setReport(validator.validate().getDetailedReport());
 			return result;
         } catch (ValidatorException e) {
             logger.error(e.getMessageForLog(), e);
