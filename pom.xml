@@ -54,7 +54,7 @@
         <version.jws>1.1</version.jws>
         <version.javaxAnnotationApi>1.3.2</version.javaxAnnotationApi>
         <version.javaxActivation>1.1.1</version.javaxActivation>
-        <version.cxf>3.4.5</version.cxf>
+        <version.cxf>3.5.1</version.cxf>
         <version.commonsConfiguration>2.7</version.commonsConfiguration>
         <version.commonsLang>3.10</version.commonsLang>
         <version.commonsIo>2.7</version.commonsIo>
