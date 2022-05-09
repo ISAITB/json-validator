@@ -1,11 +1,12 @@
 package eu.europa.ec.itb.json.webhook;
 
 import eu.europa.ec.itb.json.web.UploadController;
+import eu.europa.ec.itb.validation.commons.web.dto.Translations;
+import eu.europa.ec.itb.validation.commons.web.dto.UploadResult;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +24,7 @@ class StatisticReportingAspectTest {
         // USe subclasses as AspectJ proxies cannot be made over Mockito mocks and spies.
         var target = new UploadController() {
             @Override
-            public ModelAndView handleUpload(String domain, MultipartFile file, String uri, String string, String validationType, String contentType, String[] externalSchema, MultipartFile[] externalSchemaFiles, String[] externalSchemaUri, String combinationType, RedirectAttributes redirectAttributes, HttpServletRequest request, HttpServletResponse response) {
+            public UploadResult<Translations> handleUpload(String domain, MultipartFile file, String uri, String string, String validationType, String contentType, String[] externalSchema, MultipartFile[] externalSchemaFiles, String[] externalSchemaUri, String combinationType, RedirectAttributes redirectAttributes, HttpServletRequest request, HttpServletResponse response) {
                 assertEquals("domain1", domain);
                 assertTrue(aspectCalled[0]); // We expect the aspect to have been called before the method.
                 // We only want to check if this was called.
@@ -53,7 +54,7 @@ class StatisticReportingAspectTest {
         // USe subclasses as AspectJ proxies cannot be made over Mockito mocks and spies.
         var target = new UploadController() {
             @Override
-            public ModelAndView handleUploadM(String domain, MultipartFile file, String uri, String string, String validationType, String contentType, String[] externalSchema, MultipartFile[] externalSchemaFiles, String[] externalSchemaUri, String combinationType, RedirectAttributes redirectAttributes, HttpServletRequest request, HttpServletResponse response) {
+            public UploadResult<Translations> handleUploadM(String domain, MultipartFile file, String uri, String string, String validationType, String contentType, String[] externalSchema, MultipartFile[] externalSchemaFiles, String[] externalSchemaUri, String combinationType, RedirectAttributes redirectAttributes, HttpServletRequest request, HttpServletResponse response) {
                 assertEquals("domain1", domain);
                 assertTrue(aspectCalled[0]); // We expect the aspect to have been called before the method.
                 // We only want to check if this was called.
