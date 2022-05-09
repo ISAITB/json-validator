@@ -8,12 +8,13 @@ import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationSpecs;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
-import eu.europa.ec.itb.validation.commons.Utils;
 import eu.europa.ec.itb.validation.commons.ValidatorChannel;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
+import eu.europa.ec.itb.validation.commons.web.dto.Translations;
+import eu.europa.ec.itb.validation.commons.web.dto.UploadResult;
 import eu.europa.ec.itb.validation.commons.web.errors.NotFoundException;
 import eu.europa.ec.itb.validation.commons.web.locale.CustomLocaleResolver;
 import org.apache.commons.io.FileUtils;
@@ -25,10 +26,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -113,19 +111,20 @@ public class UploadController {
      * @return The model and view information.
      */
     @PostMapping(value = "/{domain}/upload")
-    public ModelAndView handleUpload(@PathVariable("domain") String domain,
-                                     @RequestParam("file") MultipartFile file,
-                                     @RequestParam(value = "uri", defaultValue = "") String uri,
-                                     @RequestParam(value = "text-editor", defaultValue = "") String string,
-                                     @RequestParam(value = "validationType", defaultValue = "") String validationType,
-                                     @RequestParam(value = "contentType", defaultValue = "") String contentType,
-                                     @RequestParam(value = "contentType-external_default", required = false) String[] externalSchemaContentType,
-                                     @RequestParam(value = "inputFile-external_default", required= false) MultipartFile[] externalSchemaFiles,
-                                     @RequestParam(value = "uri-external_default", required = false) String[] externalSchemaUri,
-                                     @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
-                                     RedirectAttributes redirectAttributes,
-                                     HttpServletRequest request,
-                                     HttpServletResponse response) {
+    @ResponseBody
+    public UploadResult<Translations> handleUpload(@PathVariable("domain") String domain,
+                                                   @RequestParam("file") MultipartFile file,
+                                                   @RequestParam(value = "uri", defaultValue = "") String uri,
+                                                   @RequestParam(value = "text-editor", defaultValue = "") String string,
+                                                   @RequestParam(value = "validationType", defaultValue = "") String validationType,
+                                                   @RequestParam(value = "contentType", defaultValue = "") String contentType,
+                                                   @RequestParam(value = "contentType-external_default", required = false) String[] externalSchemaContentType,
+                                                   @RequestParam(value = "inputFile-external_default", required= false) MultipartFile[] externalSchemaFiles,
+                                                   @RequestParam(value = "uri-external_default", required = false) String[] externalSchemaUri,
+                                                   @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
+                                                   RedirectAttributes redirectAttributes,
+                                                   HttpServletRequest request,
+                                                   HttpServletResponse response) {
         setMinimalUIFlag(request, false);
         DomainConfig config = domainConfigs.getConfigForDomainName(domain);
         if (config == null || !config.getChannels().contains(ValidatorChannel.FORM)) {
@@ -133,96 +132,87 @@ public class UploadController {
         }
         var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
         MDC.put(MDC_DOMAIN, domain);
-        InputStream stream = null;
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(PARAM_DOMAIN_CONFIG, config);
-        attributes.put(PARAM_MINIMAL_UI, false);
-        attributes.put(PARAM_LOCALISER, localisationHelper);
-        attributes.put(PARAM_HTML_BANNER_EXISTS, localisationHelper.propertyExists("validator.bannerHtml"));
-        attributes.put(PARAM_EXTERNAL_ARTIFACT_INFO, config.getExternalArtifactInfoMap());
+        var result = new UploadResult<>();
 
-        if (StringUtils.isNotBlank(validationType)) {
-            attributes.put(PARAM_VALIDATION_TYPE_LABEL, config.getCompleteTypeOptionLabel(validationType, localisationHelper));
-        }
-        attributes.put(PARAM_APP_CONFIG, appConfig);
-        try (InputStream fis = getInputStream(contentType, file.getInputStream(), uri, string)) {
-            if (fileManager.checkFileType(fis)) {
-                stream = getInputStream(contentType, file.getInputStream(), uri, string);
-            } else {
-                attributes.put(PARAM_MESSAGE, localisationHelper.localise("validator.label.exception.providedInputNotJSON"));
-            }
-        } catch (IOException e) {
-            logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
-            attributes.put(PARAM_MESSAGE, localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
-        }
         if (StringUtils.isBlank(validationType)) {
             validationType = config.getType().get(0);
         }
         if (config.hasMultipleValidationTypes() && (validationType == null || !config.getType().contains(validationType))) {
             // A validation type is required.
-            attributes.put(PARAM_MESSAGE, localisationHelper.localise("validator.label.exception.providedValidationTypeNotValid"));
-        }
-        File tempFolderForRequest = fileManager.createTemporaryFolderPath();
-        try {
+            result.setMessage(localisationHelper.localise("validator.label.exception.providedValidationTypeNotValid"));
+        } else {
+            InputStream stream = null;
+            try (InputStream fis = getInputStream(contentType, file.getInputStream(), uri, string)) {
+                if (fileManager.checkFileType(fis)) {
+                    stream = getInputStream(contentType, file.getInputStream(), uri, string);
+                } else {
+                    result.setMessage(localisationHelper.localise("validator.label.exception.providedInputNotJSON"));
+                }
+            } catch (IOException e) {
+                logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
+                result.setMessage(localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
+            }
             if (stream != null) {
-                File contentToValidate = fileManager.getFileFromInputStream(tempFolderForRequest, stream, null, UUID.randomUUID() +".json");
-                List<FileInfo> externalSchemas = new ArrayList<>();
-                boolean proceedToValidate = true;
+                File tempFolderForRequest = fileManager.createTemporaryFolderPath();
                 try {
-                    externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, config.getSchemaInfo(validationType), tempFolderForRequest);
-                } catch (IOException e) {
-                    logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
-                    attributes.put(PARAM_MESSAGE, localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
-                    proceedToValidate = false;
-                }
-                if (proceedToValidate) {
-                    JSONValidator validator = beans.getBean(JSONValidator.class, ValidationSpecs.builder(contentToValidate, localisationHelper, config)
-                            .withValidationType(validationType)
-                            .withExternalSchemas(externalSchemas, getSchemaCombinationApproach(validationType, combinationType, config))
-                            .addInputToReport()
-                            .produceAggregateReport()
-                            .build());
-                    var reports = validator.validate();
-                    attributes.put(PARAM_REPORT, reports.getDetailedReport());
-                    attributes.put(PARAM_AGGREGATE_REPORT, reports.getAggregateReport());
-                    attributes.put(PARAM_SHOW_AGGREGATE_REPORT, Utils.aggregateDiffers(reports.getDetailedReport(), reports.getAggregateReport()));
-                    attributes.put(PARAM_DATE, reports.getDetailedReport().getDate().toString());
-                    if (contentType.equals(CONTENT_TYPE_FILE)) {
-                        attributes.put(PARAM_FILE_NAME, file.getOriginalFilename());
-                    } else if(contentType.equals(CONTENT_TYPE_URI)) {
-                        attributes.put(PARAM_FILE_NAME, uri);
-                    } else {
-                        attributes.put(PARAM_FILE_NAME, "-");
-                    }
-                    // Cache detailed report.
+                    File contentToValidate = fileManager.getFileFromInputStream(tempFolderForRequest, stream, null, UUID.randomUUID() +".json");
+                    List<FileInfo> externalSchemas = new ArrayList<>();
+                    boolean proceedToValidate = true;
                     try {
-                        String inputID = fileManager.writeJson(config.getDomainName(), reports.getDetailedReport().getContext().getItem().get(0).getValue());
-                        attributes.put(PARAM_INPUT_ID, inputID);
-                        fileManager.saveReport(reports.getDetailedReport(), inputID, config);
-                        fileManager.saveReport(reports.getAggregateReport(), inputID, config, true);
+                        externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, config.getSchemaInfo(validationType), tempFolderForRequest);
                     } catch (IOException e) {
-                        logger.error("Error generating detailed report [" + e.getMessage() + "]", e);
-                        attributes.put(PARAM_MESSAGE, "Error generating detailed report: " + e.getMessage());
+                        logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
+                        result.setMessage(localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
+                        proceedToValidate = false;
+                    }
+                    if (proceedToValidate) {
+                        JSONValidator validator = beans.getBean(JSONValidator.class, ValidationSpecs.builder(contentToValidate, localisationHelper, config)
+                                .withValidationType(validationType)
+                                .withExternalSchemas(externalSchemas, getSchemaCombinationApproach(validationType, combinationType, config))
+                                .addInputToReport()
+                                .produceAggregateReport()
+                                .build());
+                        var reports = validator.validate();
+                        // Cache detailed report.
+                        try {
+                            String inputID = fileManager.writeJson(config.getDomainName(), reports.getDetailedReport().getContext().getItem().get(0).getValue());
+                            fileManager.saveReport(reports.getDetailedReport(), inputID, config);
+                            fileManager.saveReport(reports.getAggregateReport(), inputID, config, true);
+                            String fileName;
+                            if (contentType.equals(CONTENT_TYPE_FILE)) {
+                                fileName = file.getOriginalFilename();
+                            } else if (contentType.equals(CONTENT_TYPE_URI)) {
+                                fileName = uri;
+                            } else {
+                                fileName = "-";
+                            }
+                            result.populateCommon(localisationHelper, validationType, config, inputID,
+                                    fileName, reports.getDetailedReport(), reports.getAggregateReport(),
+                                    new Translations(localisationHelper, reports.getDetailedReport(), config));
+                        } catch (IOException e) {
+                            logger.error("Error generating detailed report [" + e.getMessage() + "]", e);
+                            result.setMessage(localisationHelper.localise("validator.label.exception.errorGeneratingDetailedReport", e.getMessage()));
+                        }
+                    }
+                } catch (ValidatorException e) {
+                    logger.error(e.getMessageForLog(), e);
+                    result.setMessage(e.getMessageForDisplay(localisationHelper));
+                } catch (Exception e) {
+                    logger.error("An error occurred during the validation [" + e.getMessage() + "]", e);
+                    if (e.getMessage() != null) {
+                        result.setMessage(localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidationWithParams", e.getMessage()));
+                    } else {
+                        result.setMessage(localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidation"));
+                    }
+                } finally {
+                    // Cleanup temporary resources for request.
+                    if (tempFolderForRequest.exists()) {
+                        FileUtils.deleteQuietly(tempFolderForRequest);
                     }
                 }
-            }
-        } catch (ValidatorException e) {
-            logger.error(e.getMessageForLog(), e);
-            attributes.put(PARAM_MESSAGE, e.getMessageForDisplay(localisationHelper));
-        } catch (Exception e) {
-            logger.error("An error occurred during the validation [" + e.getMessage() + "]", e);
-            if (e.getMessage() != null) {
-                attributes.put(PARAM_MESSAGE, localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidationWithParams", e.getMessage()));
-            } else {
-                attributes.put(PARAM_MESSAGE, localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidation"));
-            }
-        } finally {
-            // Cleanup temporary resources for request.
-            if (tempFolderForRequest.exists()) {
-                FileUtils.deleteQuietly(tempFolderForRequest);
             }
         }
-        return new ModelAndView(VIEW_UPLOAD_FORM, attributes);
+        return result;
     }
 
     /**
@@ -300,7 +290,8 @@ public class UploadController {
      * @return The model and view information.
      */
     @PostMapping(value = "/{domain}/uploadm")
-    public ModelAndView handleUploadM(@PathVariable("domain") String domain,
+    @ResponseBody
+    public UploadResult<Translations> handleUploadM(@PathVariable("domain") String domain,
                                       @RequestParam("file") MultipartFile file,
                                       @RequestParam(value = "uri", defaultValue = "") String uri,
                                       @RequestParam(value = "text-editor", defaultValue = "") String string,
@@ -315,12 +306,7 @@ public class UploadController {
                                       HttpServletResponse response) {
 
         setMinimalUIFlag(request, true);
-        ModelAndView mv = handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
-
-        Map<String, Object> attributes = mv.getModel();
-        attributes.put(PARAM_MINIMAL_UI, true);
-
-        return new ModelAndView(VIEW_UPLOAD_FORM, attributes);
+        return handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
     }
 
     /**
