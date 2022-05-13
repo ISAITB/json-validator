@@ -8,24 +8,23 @@ import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationSpecs;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
-import eu.europa.ec.itb.validation.commons.ValidatorChannel;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
+import eu.europa.ec.itb.validation.commons.web.BaseUploadController;
+import eu.europa.ec.itb.validation.commons.web.Constants;
 import eu.europa.ec.itb.validation.commons.web.dto.Translations;
 import eu.europa.ec.itb.validation.commons.web.dto.UploadResult;
-import eu.europa.ec.itb.validation.commons.web.errors.NotFoundException;
 import eu.europa.ec.itb.validation.commons.web.locale.CustomLocaleResolver;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -45,10 +44,9 @@ import static eu.europa.ec.itb.validation.commons.web.Constants.*;
  * Controller to manage the validator's web user interface.
  */
 @Controller
-public class UploadController {
+public class UploadController extends BaseUploadController<DomainConfig, DomainConfigCache> {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
-    private static final String IS_MINIMAL = "isMinimal";
     private static final String CONTENT_TYPE_FILE = "fileType" ;
     private static final String CONTENT_TYPE_URI = "uriType" ;
     private static final String CONTENT_TYPE_STRING = "stringType" ;
@@ -58,8 +56,6 @@ public class UploadController {
     @Autowired
     private BeanFactory beans = null;
     @Autowired
-    private DomainConfigCache domainConfigs = null;
-    @Autowired
     private ApplicationConfig appConfig = null;
     @Autowired
     private CustomLocaleResolver localeResolver = null;
@@ -68,28 +64,36 @@ public class UploadController {
      * Prepare the upload page.
      *
      * @param domain The domain name.
-     * @param model The UI model.
      * @param request The received request.
      * @param response The HTTP response.
      * @return The model and view information.
      */
     @GetMapping(value = "/{domain}/upload")
-    public ModelAndView upload(@PathVariable("domain") String domain, Model model, HttpServletRequest request, HttpServletResponse response) {
-        setMinimalUIFlag(request, false);
-        DomainConfig config = domainConfigs.getConfigForDomainName(domain);
-        if (config == null || !config.getChannels().contains(ValidatorChannel.FORM)) {
-            throw new NotFoundException();
-        }
-        MDC.put(MDC_DOMAIN, domain);
+    public ModelAndView upload(@PathVariable("domain") String domain, HttpServletRequest request, HttpServletResponse response) {
+        var config = validateDomain(request, domain);
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(PARAM_DOMAIN_CONFIG, config);
         attributes.put(PARAM_APP_CONFIG, appConfig);
-        attributes.put(PARAM_MINIMAL_UI, false);
+        attributes.put(PARAM_MINIMAL_UI, request.getAttribute(IS_MINIMAL));
         attributes.put(PARAM_EXTERNAL_ARTIFACT_INFO, config.getExternalArtifactInfoMap());
         var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
         attributes.put(PARAM_LOCALISER, localisationHelper);
         attributes.put(PARAM_HTML_BANNER_EXISTS, localisationHelper.propertyExists("validator.bannerHtml"));
         return new ModelAndView(VIEW_UPLOAD_FORM, attributes);
+    }
+
+    /**
+     * Prepare the upload page (minimal UI version).
+     *
+     * @param domain The domain name.
+     * @param request The received request.
+     * @param response The HTTP response.
+     * @return The model and view information.
+     */
+    @GetMapping(value = "/{domain}/uploadm")
+    public ModelAndView uploadMinimal(@PathVariable("domain") String domain, HttpServletRequest request, HttpServletResponse response) {
+        setMinimalUIFlag(request, true);
+        return upload(domain, request, response);
     }
 
     /**
@@ -110,7 +114,7 @@ public class UploadController {
      * @param response The HTTP response.
      * @return The model and view information.
      */
-    @PostMapping(value = "/{domain}/upload")
+    @PostMapping(value = "/{domain}/upload", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public UploadResult<Translations> handleUpload(@PathVariable("domain") String domain,
                                                    @RequestParam("file") MultipartFile file,
@@ -125,13 +129,8 @@ public class UploadController {
                                                    RedirectAttributes redirectAttributes,
                                                    HttpServletRequest request,
                                                    HttpServletResponse response) {
-        setMinimalUIFlag(request, false);
-        DomainConfig config = domainConfigs.getConfigForDomainName(domain);
-        if (config == null || !config.getChannels().contains(ValidatorChannel.FORM)) {
-            throw new NotFoundException();
-        }
+        var config = validateDomain(request, domain);
         var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
-        MDC.put(MDC_DOMAIN, domain);
         var result = new UploadResult<>();
 
         if (StringUtils.isBlank(validationType)) {
@@ -216,6 +215,78 @@ public class UploadController {
     }
 
     /**
+     * Handle the upload form's submission when the user interface is minimal.
+     *
+     * @see UploadController#handleUpload(String, MultipartFile, String, String, String, String, String[], MultipartFile[], String[], String, RedirectAttributes, HttpServletRequest, HttpServletResponse)
+     */
+    @PostMapping(value = "/{domain}/uploadm", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public UploadResult<Translations> handleUploadMinimal(@PathVariable("domain") String domain,
+                                                    @RequestParam("file") MultipartFile file,
+                                                    @RequestParam(value = "uri", defaultValue = "") String uri,
+                                                    @RequestParam(value = "text-editor", defaultValue = "") String string,
+                                                    @RequestParam(value = "validationType", defaultValue = "") String validationType,
+                                                    @RequestParam(value = "contentType", defaultValue = "") String contentType,
+                                                    @RequestParam(value = "contentType-external_default", required = false) String[] externalSchema,
+                                                    @RequestParam(value = "inputFile-external_default", required= false) MultipartFile[] externalSchemaFiles,
+                                                    @RequestParam(value = "uriToValidate-external_default", required = false) String[] externalSchemaUri,
+                                                    @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
+                                                    RedirectAttributes redirectAttributes,
+                                                    HttpServletRequest request,
+                                                    HttpServletResponse response) {
+        setMinimalUIFlag(request, true);
+        return handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
+    }
+
+    /**
+     * Handle the upload form's submission when the user interface is embedded in another web page.
+     *
+     * @see UploadController#handleUpload(String, MultipartFile, String, String, String, String, String[], MultipartFile[], String[], String, RedirectAttributes, HttpServletRequest, HttpServletResponse)
+     */
+    @PostMapping(value = "/{domain}/upload", produces = MediaType.TEXT_HTML_VALUE)
+    public ModelAndView handleUploadEmbedded(@PathVariable("domain") String domain,
+                                             @RequestParam("file") MultipartFile file,
+                                             @RequestParam(value = "uri", defaultValue = "") String uri,
+                                             @RequestParam(value = "text-editor", defaultValue = "") String string,
+                                             @RequestParam(value = "validationType", defaultValue = "") String validationType,
+                                             @RequestParam(value = "contentType", defaultValue = "") String contentType,
+                                             @RequestParam(value = "contentType-external_default", required = false) String[] externalSchema,
+                                             @RequestParam(value = "inputFile-external_default", required= false) MultipartFile[] externalSchemaFiles,
+                                             @RequestParam(value = "uriToValidate-external_default", required = false) String[] externalSchemaUri,
+                                             @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
+                                             RedirectAttributes redirectAttributes,
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
+        var uploadForm = upload(domain, request, response);
+        var uploadResult = handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
+        uploadForm.getModel().put(Constants.PARAM_REPORT_DATA, writeResultToString(uploadResult));
+        return uploadForm;
+    }
+
+    /**
+     * Handle the upload form's submission when the user interface is minimal and embedded in another web page.
+     *
+     * @see UploadController#handleUpload(String, MultipartFile, String, String, String, String, String[], MultipartFile[], String[], String, RedirectAttributes, HttpServletRequest, HttpServletResponse)
+     */
+    @PostMapping(value = "/{domain}/uploadm", produces = MediaType.TEXT_HTML_VALUE)
+    public ModelAndView handleUploadMinimalEmbedded(@PathVariable("domain") String domain,
+                                                    @RequestParam("file") MultipartFile file,
+                                                    @RequestParam(value = "uri", defaultValue = "") String uri,
+                                                    @RequestParam(value = "text-editor", defaultValue = "") String string,
+                                                    @RequestParam(value = "validationType", defaultValue = "") String validationType,
+                                                    @RequestParam(value = "contentType", defaultValue = "") String contentType,
+                                                    @RequestParam(value = "contentType-external_default", required = false) String[] externalSchema,
+                                                    @RequestParam(value = "inputFile-external_default", required= false) MultipartFile[] externalSchemaFiles,
+                                                    @RequestParam(value = "uriToValidate-external_default", required = false) String[] externalSchemaUri,
+                                                    @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
+                                                    RedirectAttributes redirectAttributes,
+                                                    HttpServletRequest request,
+                                                    HttpServletResponse response) {
+        setMinimalUIFlag(request, true);
+        return handleUploadEmbedded(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
+    }
+
+    /**
      * Validate and get the combination approach for multiple schemas.
      *
      * @param validationType The validation type.
@@ -233,92 +304,6 @@ public class UploadController {
             }
         }
         return externalSchemaCombinationApproach;
-    }
-
-    /**
-     * Prepare the upload page (minimal UI version).
-     *
-     * @param domain The domain name.
-     * @param model The UI model.
-     * @param request The received request.
-     * @param response The HTTP response.
-     * @return The model and view information.
-     */
-    @GetMapping(value = "/{domain}/uploadm")
-    public ModelAndView uploadm(@PathVariable("domain") String domain, Model model, HttpServletRequest request, HttpServletResponse response) {
-        setMinimalUIFlag(request, true);
-
-        DomainConfig config = domainConfigs.getConfigForDomainName(domain);
-        if (config == null || !config.getChannels().contains(ValidatorChannel.FORM)) {
-            throw new NotFoundException();
-        }
-
-        if(!config.isSupportMinimalUserInterface()) {
-            logger.error("Minimal user interface is not supported in this domain [{}].", domain);
-            throw new NotFoundException();
-        }
-
-        MDC.put(MDC_DOMAIN, domain);
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(PARAM_DOMAIN_CONFIG, config);
-        attributes.put(PARAM_APP_CONFIG, appConfig);
-        attributes.put(PARAM_MINIMAL_UI, true);
-        attributes.put(PARAM_EXTERNAL_ARTIFACT_INFO, config.getExternalArtifactInfoMap());
-        var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
-        attributes.put(PARAM_LOCALISER, localisationHelper);
-        attributes.put(PARAM_HTML_BANNER_EXISTS, localisationHelper.propertyExists("validator.bannerHtml"));
-        return new ModelAndView(VIEW_UPLOAD_FORM, attributes);
-    }
-
-
-    /**
-     * Handle the upload form's submission (minimal UI version).
-     *
-     * @param domain The domain name.
-     * @param file The input file (if provided via file upload).
-     * @param uri The input URI (if provided via remote URI).
-     * @param string The input content (if provided via editor).
-     * @param validationType The validation type.
-     * @param contentType The type of the provided content.
-     * @param externalSchema The content type of the user-provided schemas.
-     * @param externalSchemaFiles The user-provided schemas (those provided as file uploads).
-     * @param externalSchemaUri The user-provided schemas (those provided as URIs).
-     * @param combinationType The combination type option in case of multiple schemas.
-     * @param redirectAttributes Redirect attributes.
-     * @param request The received request.
-     * @param response The HTTP response.
-     * @return The model and view information.
-     */
-    @PostMapping(value = "/{domain}/uploadm")
-    @ResponseBody
-    public UploadResult<Translations> handleUploadM(@PathVariable("domain") String domain,
-                                      @RequestParam("file") MultipartFile file,
-                                      @RequestParam(value = "uri", defaultValue = "") String uri,
-                                      @RequestParam(value = "text-editor", defaultValue = "") String string,
-                                      @RequestParam(value = "validationType", defaultValue = "") String validationType,
-                                      @RequestParam(value = "contentType", defaultValue = "") String contentType,
-                                      @RequestParam(value = "contentType-external_default", required = false) String[] externalSchema,
-                                      @RequestParam(value = "inputFile-external_default", required= false) MultipartFile[] externalSchemaFiles,
-                                      @RequestParam(value = "uriToValidate-external_default", required = false) String[] externalSchemaUri,
-                                      @RequestParam(value = "combinationType", defaultValue = "") String combinationType,
-                                      RedirectAttributes redirectAttributes,
-                                      HttpServletRequest request,
-                                      HttpServletResponse response) {
-
-        setMinimalUIFlag(request, true);
-        return handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
-    }
-
-    /**
-     * Record whether the current request is through a minimal UI.
-     *
-     * @param request The current request.
-     * @param isMinimal True in case of the minimal UI being used.
-     */
-    private void setMinimalUIFlag(HttpServletRequest request, boolean isMinimal) {
-        if (request.getAttribute(IS_MINIMAL) == null) {
-            request.setAttribute(IS_MINIMAL, isMinimal);
-        }
     }
 
     /**
@@ -359,7 +344,6 @@ public class UploadController {
             logger.error("An error occurred during the validation of the external schema(s).");
             throw new ValidatorException("validator.label.exception.errorDuringValidationExternalSchemas");
         }
-
     }
 
     /**
