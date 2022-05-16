@@ -70,7 +70,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      */
     @GetMapping(value = "/{domain}/upload")
     public ModelAndView upload(@PathVariable("domain") String domain, HttpServletRequest request, HttpServletResponse response) {
-        var config = validateDomain(request, domain);
+        var config = getDomainConfig(request);
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(PARAM_DOMAIN_CONFIG, config);
         attributes.put(PARAM_APP_CONFIG, appConfig);
@@ -92,7 +92,6 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      */
     @GetMapping(value = "/{domain}/uploadm")
     public ModelAndView uploadMinimal(@PathVariable("domain") String domain, HttpServletRequest request, HttpServletResponse response) {
-        setMinimalUIFlag(request, true);
         return upload(domain, request, response);
     }
 
@@ -129,7 +128,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                                                    RedirectAttributes redirectAttributes,
                                                    HttpServletRequest request,
                                                    HttpServletResponse response) {
-        var config = validateDomain(request, domain);
+        var config = getDomainConfig(request);
         var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
         var result = new UploadResult<>();
 
@@ -234,7 +233,6 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                                                     RedirectAttributes redirectAttributes,
                                                     HttpServletRequest request,
                                                     HttpServletResponse response) {
-        setMinimalUIFlag(request, true);
         return handleUpload(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
     }
 
@@ -282,7 +280,6 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                                                     RedirectAttributes redirectAttributes,
                                                     HttpServletRequest request,
                                                     HttpServletResponse response) {
-        setMinimalUIFlag(request, true);
         return handleUploadEmbedded(domain, file, uri, string, validationType, contentType, externalSchema, externalSchemaFiles, externalSchemaUri, combinationType, redirectAttributes, request, response);
     }
 
