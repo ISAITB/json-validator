@@ -4,6 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonWriter;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.JsonPathException;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
@@ -11,11 +15,11 @@ import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinatio
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Class used to wrap the specifications with which to carry out a validation.
@@ -23,7 +27,7 @@ import java.util.List;
 public class ValidationSpecs {
 
     private File input;
-    private File inputPrettyPrinted;
+    private File inputToUse;
     private LocalisationHelper localisationHelper;
     private DomainConfig domainConfig;
     private String validationType;
@@ -42,10 +46,37 @@ public class ValidationSpecs {
      * @return The pretty-printed JSON content to validate.
      */
     public File getInput() {
-        if (inputPrettyPrinted == null) {
-            inputPrettyPrinted = prettyPrint(input);
+        return input;
+    }
+
+    /**
+     * @return The preprocessed input.
+     */
+    public File getInputFileToUse() {
+        if (inputToUse == null) {
+            var expression = domainConfig.getInputPreprocessorPerType().get(validationType);
+            if (expression == null) {
+                // No preprocessing needed.
+                inputToUse = prettyPrint(input);
+            } else {
+                inputToUse = new File(input.getParent(), UUID.randomUUID().toString() + ".json");
+                // A preprocessing JSONPath expression has been provided for the given validation type.
+                try (InputStream inputStream = new FileInputStream(input)) {
+                    Object preprocessedJsonObject = JsonPath.parse(inputStream).read(expression);
+                    Gson gson = new Gson();
+                    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(inputToUse.getAbsolutePath()), "UTF-8"))) {
+                        gson.toJson(preprocessedJsonObject, writer);
+                        writer.flush();
+                        inputToUse = prettyPrint(inputToUse);
+                    }
+                } catch (JsonPathException e) {
+                    throw new ValidatorException("validator.label.exception.jsonPathError", e, expression);
+                } catch (IOException e) {
+                    throw new ValidatorException("validator.label.exception.errorInputForPreprocessing", e);
+                }
+            }
         }
-        return inputPrettyPrinted;
+        return inputToUse;
     }
 
     /**

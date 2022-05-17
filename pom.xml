@@ -63,6 +63,7 @@
         <version.gson>2.9.0</version.gson>
         <version.tika>2.1.0</version.tika>
         <version.aspectjWeaver>1.9.6</version.aspectjWeaver>
+        <version.jayway>2.7.0</version.jayway>
     </properties>
 
     <repositories>
@@ -202,6 +203,11 @@
                 <groupId>jakarta.json</groupId>
                 <artifactId>jakarta.json-api</artifactId>
                 <version>${version.jakartaJson}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>${version.jayway}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish</groupId>
