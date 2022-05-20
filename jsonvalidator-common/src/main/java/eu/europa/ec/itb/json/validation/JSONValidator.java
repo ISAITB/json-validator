@@ -124,7 +124,7 @@ public class JSONValidator {
             inputReportContent.setName(ValidationConstants.INPUT_CONTENT);
             inputReportContent.setMimeType("application/json");
             try {
-                inputReportContent.setValue(FileUtils.readFileToString(specs.getInput(), StandardCharsets.UTF_8));
+                inputReportContent.setValue(FileUtils.readFileToString(specs.getInputFileToUse(), StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new IllegalStateException("Unable to generate output report", e);
             }
@@ -175,7 +175,7 @@ public class JSONValidator {
     private ValidateRequest preparePluginInput(File pluginTmpFolder) {
         File pluginInputFile = new File(pluginTmpFolder, UUID.randomUUID().toString()+".json");
         try {
-            FileUtils.copyFile(specs.getInput(), pluginInputFile);
+            FileUtils.copyFile(specs.getInputFileToUse(), pluginInputFile);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to copy input file for plugin", e);
         }
@@ -277,7 +277,7 @@ public class JSONValidator {
                 .withLocation(true)
                 .withLocale(specs.getLocalisationHelper().getLocale())
                 .build();
-        try (JsonParser parser = jsonValidationService.createParser(specs.getInput().toPath(), schema, handler)) {
+        try (JsonParser parser = jsonValidationService.createParser(specs.getInputFileToUse().toPath(), schema, handler)) {
             while (parser.hasNext()) {
                 parser.next();
             }
