@@ -79,7 +79,11 @@ public class ValidationServiceImpl implements ValidationService {
         response.getModule().setInputs(new TypedParameters());
         response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_CONTENT, "binary", UsageEnumeration.R, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_CONTENT)));
         response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_EMBEDDING_METHOD, "string", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EMBEDDING_METHOD)));
-        response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_VALIDATION_TYPE, "string", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_VALIDATION_TYPE)));
+        UsageEnumeration usage = UsageEnumeration.O;
+        if(domainConfig.hasMultipleValidationTypes() && domainConfig.getDefaultType() == null) {
+            usage = UsageEnumeration.R;
+        }
+        response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_VALIDATION_TYPE, "string", usage, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_VALIDATION_TYPE)));
         boolean allowsExternalSchemas = definesTypeWithExternalSchemas();
         if (allowsExternalSchemas) {
             response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_EXTERNAL_SCHEMAS, "list[map]", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EXTERNAL_SCHEMAS)));
