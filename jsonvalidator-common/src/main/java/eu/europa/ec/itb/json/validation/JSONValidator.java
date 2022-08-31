@@ -17,6 +17,7 @@ import jakarta.json.stream.JsonParser;
 import jakarta.json.stream.JsonParsingException;
 import org.apache.commons.io.FileUtils;
 import org.leadpony.justify.api.JsonSchema;
+ import org.leadpony.justify.api.JsonSchemaReader;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.ProblemHandler;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +55,8 @@ public class JSONValidator {
     private ApplicationConfig appConfig = null;
     @Autowired
     private JsonValidationService jsonValidationService = null;
+    @Autowired
+    private LocalSchemaResolver localSchemaResolver = null;
 
     private final ObjectFactory objectFactory = new ObjectFactory();
     private final ValidationSpecs specs;
@@ -260,6 +264,30 @@ public class JSONValidator {
     }
 
     /**
+     * Read the schema defined from the provided path.
+     *
+     * The schema loading in this case extends what the official spec foresees, allowing to read definitions
+     * from local files (and reuse schemas).
+     *
+     * @param path The schema path.
+     * @return The parsed schema.
+     */
+    private JsonSchema readSchema(Path path) {
+        LocalSchemaResolver.RESOLUTION_STATE.set(new SchemaResolutionState(specs.getDomainConfig()));
+        try {
+            var schemaReaderFactory = jsonValidationService
+                    .createSchemaReaderFactoryBuilder()
+                    .withSchemaResolver(localSchemaResolver)
+                    .build();
+            try (JsonSchemaReader schemaReader = schemaReaderFactory.createSchemaReader(path)) {
+                return schemaReader.read();
+            }
+        } finally {
+            LocalSchemaResolver.RESOLUTION_STATE.remove();
+        }
+    }
+
+    /**
      * Validate the JSON content against one JSON schema.
      *
      * @param schemaFile The schema file to use.
@@ -268,7 +296,7 @@ public class JSONValidator {
     private List<String> validateAgainstSchema(File schemaFile) {
         JsonSchema schema;
         try {
-            schema = jsonValidationService.readSchema(schemaFile.toPath());
+            schema = readSchema(schemaFile.toPath());
         } catch (JsonParsingException e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }

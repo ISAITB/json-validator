@@ -5,10 +5,24 @@ import eu.europa.ec.itb.validation.commons.artifact.TypedValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.config.WebDomainConfig;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * The configuration for a specific validation domain.
  */
 public class DomainConfig extends WebDomainConfig {
+
+    private final Set<String> sharedSchemas = new HashSet<>();
+
+    /**
+     * Get the configured values for shared schema references.
+     *
+     * @return The set of references.
+     */
+    public Set<String> getSharedSchemas() {
+        return sharedSchemas;
+    }
 
     /**
      * Get the JSON schema configuration for a given validation type.
