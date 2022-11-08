@@ -177,7 +177,7 @@ public class JSONValidator {
      * @return The request instance to pass to the plugins.
      */
     private ValidateRequest preparePluginInput(File pluginTmpFolder) {
-        File pluginInputFile = new File(pluginTmpFolder, UUID.randomUUID().toString()+".json");
+        File pluginInputFile = new File(pluginTmpFolder, UUID.randomUUID() +".json");
         try {
             FileUtils.copyFile(specs.getInputFileToUse(), pluginInputFile);
         } catch (IOException e) {
@@ -189,6 +189,7 @@ public class JSONValidator {
         request.getInput().add(Utils.createInputItem("validationType", specs.getValidationType()));
         request.getInput().add(Utils.createInputItem("tempFolder", pluginTmpFolder.getAbsolutePath()));
         request.getInput().add(Utils.createInputItem("locale", specs.getLocalisationHelper().getLocale().toString()));
+        request.getInput().add(Utils.createInputItem("locationAsPointer", String.valueOf(specs.isLocationAsPointer())));
         return request;
     }
 
