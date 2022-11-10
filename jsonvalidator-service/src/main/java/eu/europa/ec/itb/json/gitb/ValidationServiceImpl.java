@@ -16,6 +16,7 @@ import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.TypedValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
+import eu.europa.ec.itb.validation.commons.web.WebServiceContextProvider;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ import java.util.List;
  */
 @Component
 @Scope("prototype")
-public class ValidationServiceImpl implements ValidationService {
+public class ValidationServiceImpl implements ValidationService, WebServiceContextProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidationServiceImpl.class);
     private final DomainConfig domainConfig;
@@ -166,17 +167,11 @@ public class ValidationServiceImpl implements ValidationService {
      */
     private ValidationArtifactCombinationApproach validateExternalSchemaCombinationApproach(ValidateRequest validateRequest, String validationType) {
         List<AnyContent> inputs = Utils.getInputFor(validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH);
-        ValidationArtifactCombinationApproach approach;
+        String approach = null;
         if (!inputs.isEmpty()) {
-            try {
-                approach = ValidationArtifactCombinationApproach.byName(inputs.get(0).getValue());
-            } catch (IllegalArgumentException e) {
-                throw new ValidatorException("validator.label.exception.invalidSchemaCombinationApproach", e, inputs.get(0).getValue());
-            }
-        } else {
-            approach = domainConfig.getSchemaInfo(validationType).getExternalArtifactCombinationApproach();
+            approach = inputs.get(0).getValue();
         }
-        return approach;
+        return inputHelper.getValidationArtifactCombinationApproach(domainConfig, validationType, approach);
     }
 
     /**
@@ -214,6 +209,7 @@ public class ValidationServiceImpl implements ValidationService {
     /**
      * @return The web service context.
      */
+    @Override
     public WebServiceContext getWebServiceContext() {
         return this.wsContext;
     }    
