@@ -14,7 +14,8 @@ The **JSON validator** is a web application to validate JSON data against [JSON 
 The application provides a fully reusable core that requires only configuration to determine the supported specifications,
 configured validation types and other validator customisations. The web application allows validation via:
 
-* A SOAP web service API for machine-machine integrations.
+* A SOAP web service API for contract-based machine-machine integrations.
+* A REST web service API for machine-machine integrations.
 * A web form for validation via user interface.
 
 The SOAP web service API conforms to the [GITB validation service API](https://www.itb.ec.europa.eu/docs/services/latest/validation/)
@@ -56,6 +57,7 @@ of JAR post-processing to configure the validator's domain(s).
 Once the validator's web application is up you can use it as follows:
 
 * SOAP API: http://localhost:8080/json/soap/DOMAIN/validation?wsdl
+* REST API: http://localhost:8080/json/DOMAIN/api/validate (Swagger docs at http://localhost:8080/json/swagger-ui/index.html)
 * Web form: http://localhost:8080/json/DOMAIN/upload
 
 Note that the `DOMAIN` placeholder in the above URLs is the name of a domain configuration folder beneath your configured `validator.resourceRoot`.
