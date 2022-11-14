@@ -14,7 +14,8 @@ The **JSON validator** is a web application to validate JSON data against [JSON 
 The application provides a fully reusable core that requires only configuration to determine the supported specifications,
 configured validation types and other validator customisations. The web application allows validation via:
 
-* A SOAP web service API for machine-machine integrations.
+* A SOAP web service API for contract-based machine-machine integrations.
+* A REST web service API for machine-machine integrations.
 * A web form for validation via user interface.
 
 The SOAP web service API conforms to the [GITB validation service API](https://www.itb.ec.europa.eu/docs/services/latest/validation/)
@@ -56,6 +57,7 @@ of JAR post-processing to configure the validator's domain(s).
 Once the validator's web application is up you can use it as follows:
 
 * SOAP API: http://localhost:8080/json/soap/DOMAIN/validation?wsdl
+* REST API: http://localhost:8080/json/DOMAIN/api/validate (Swagger docs at http://localhost:8080/json/swagger-ui/index.html)
 * Web form: http://localhost:8080/json/DOMAIN/upload
 
 Note that the `DOMAIN` placeholder in the above URLs is the name of a domain configuration folder beneath your configured `validator.resourceRoot`.
@@ -121,13 +123,14 @@ applies. Note that plugin JAR files need to be built as "all-in-one" JARs.
 
 The JSON validator calls plugins in sequence passing in the following input:
 
-| Input name          | Type     | Description                                                                                                                             |
-|---------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `contentToValidate` | `String` | The absolute and full path to the input provided to the validator.                                                                      |
-| `domain`            | `String` | The validation domain relevant to the specific validation call.                                                                         |
-| `validationType`    | `String` | The validation type of the domain that is selected for the specific validation call.                                                    |
-| `tempFolder`        | `String` | The absolute and full path to a temporary folder for plugins. This will be automatically deleted after all plugins complete validation. |
-| `locale`            | `String` | The locale (language code) to use for reporting of results (e.g. "fr", "fr_FR").                                                        |
+| Input name          | Type      | Description                                                                                                                             |
+|---------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `contentToValidate` | `String`  | The absolute and full path to the input provided to the validator.                                                                      |
+| `domain`            | `String`  | The validation domain relevant to the specific validation call.                                                                         |
+| `validationType`    | `String`  | The validation type of the domain that is selected for the specific validation call.                                                    |
+| `tempFolder`        | `String`  | The absolute and full path to a temporary folder for plugins. This will be automatically deleted after all plugins complete validation. |
+| `locale`            | `String`  | The locale (language code) to use for reporting of results (e.g. "fr", "fr_FR").                                                        |
+| `locationAsPointer` | `Boolean` | Whether report item locations should be JSON pointers or not.                                                                           |
 
 ## Output from plugins
 

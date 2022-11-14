@@ -71,7 +71,8 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
         boolean noReports = false;
         String validationType = null;
         String locale = null;
-        ValidationArtifactCombinationApproach externalSchemaCombinationApproach = DEFAULT_COMBINATION_APPROACH;
+        String schemaCombinationApproachValue = null;
+        ValidationArtifactCombinationApproach externalSchemaCombinationApproach = null;
         try {
             int i = 0;
             while (i < args.length) {
@@ -90,7 +91,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                     }
                 } else if (FLAG_SCHEMA_COMBINATION.equalsIgnoreCase(args[i])) {
                     if (args.length > i + 1) {
-                        externalSchemaCombinationApproach = ValidationArtifactCombinationApproach.byName(args[++i]);
+                        schemaCombinationApproachValue = args[++i];
                     }
                 } else if (FLAG_LOCALE.equalsIgnoreCase(args[i]) && args.length > i+1) {
                     locale = args[++i];
@@ -98,6 +99,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                 i++;
             }
             validationType = inputHelper.validateValidationType(domainConfig, validationType);
+            externalSchemaCombinationApproach = inputHelper.getValidationArtifactCombinationApproach(domainConfig, validationType, schemaCombinationApproachValue);
         } catch (ValidatorException e) {
             LOGGER_FEEDBACK.info("\nInvalid arguments provided: {}\n", e.getMessageForDisplay(new LocalisationHelper(domainConfig, Locale.ENGLISH)));
             LOGGER.error(String.format("Invalid arguments provided: %s", e.getMessageForLog()), e);
