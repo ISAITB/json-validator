@@ -29,6 +29,8 @@ public class Input {
     private Boolean locationAsPointer;
     @Schema(description = "Whether to include the validated input in the resulting report's context section.", defaultValue = "false")
     private Boolean addInputToReport;
+    @Schema(description = "Whether to wrap the input (see addInputToReport) in a CDATA block if producing an XML report. False results in adding the input via XML escaping.", defaultValue = "true")
+    private Boolean wrapReportDataInCDATA;
     @Schema(description = "Locale (language code) to use for reporting of results. If the provided locale is not supported by the validator the default locale will be used instead (e.g. 'fr', 'fr_FR').")
     private String locale;
 
@@ -122,6 +124,20 @@ public class Input {
      */
     public void setAddInputToReport(Boolean addInputToReport) {
         this.addInputToReport = addInputToReport;
+    }
+
+    /**
+     * @return Whether to wrap the input (see addInputToReport) in a CDATA block if producing an XML report. False results in adding the input via XML escaping.
+     */
+    public Boolean getWrapReportDataInCDATA() {
+        return wrapReportDataInCDATA;
+    }
+
+    /**
+     * @param wrapReportDataInCDATA Whether to wrap the input (see addInputToReport) in a CDATA block if producing an XML report. False results in adding the input via XML escaping.
+     */
+    public void setWrapReportDataInCDATA(Boolean wrapReportDataInCDATA) {
+        this.wrapReportDataInCDATA = wrapReportDataInCDATA;
     }
 
     /**
