@@ -43,7 +43,7 @@
     </developers>
 
     <properties>
-        <version.itbCommons>1.3.0</version.itbCommons>
+        <version.itbCommons>1.4.0-SNAPSHOT</version.itbCommons>
     </properties>
 
     <dependencyManagement>
