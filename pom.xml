@@ -64,6 +64,11 @@
                 <artifactId>jsonvalidator-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>eu.europa.ec.itb.json</groupId>
+                <artifactId>jsonvalidator-resources</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- Common modules. -->
             <dependency>
                 <groupId>eu.europa.ec.itb.commons</groupId>
