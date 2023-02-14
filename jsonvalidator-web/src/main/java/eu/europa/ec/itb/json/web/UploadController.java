@@ -151,7 +151,16 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
             if (stream != null) {
                 File tempFolderForRequest = fileManager.createTemporaryFolderPath();
                 try {
-                    File contentToValidate = fileManager.getFileFromInputStream(tempFolderForRequest, stream, null, UUID.randomUUID() +".json");
+                    File contentToValidate;
+                    try {
+                        contentToValidate = fileManager.getFileFromInputStream(tempFolderForRequest, stream, null, UUID.randomUUID() +".json");
+                    } finally {
+                        try {
+                            stream.close();
+                        } catch (IOException e) {
+                            // Ignore
+                        }
+                    }
                     List<FileInfo> externalSchemas = new ArrayList<>();
                     boolean proceedToValidate = true;
                     try {
@@ -386,7 +395,9 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
         File file = null;
         if (CONTENT_TYPE_FILE.equals(contentType)) {
             if (inputFile!=null && !inputFile.isEmpty()) {
-                file = this.fileManager.getFileFromInputStream(parentFolder, inputFile.getInputStream(), null, inputFile.getOriginalFilename());
+                try (var stream = inputFile.getInputStream()) {
+                    file = this.fileManager.getFileFromInputStream(parentFolder, stream, null, inputFile.getOriginalFilename());
+                }
             }
         } else if (CONTENT_TYPE_URI.equals(contentType)) {
             if (!inputUri.isEmpty()) {
