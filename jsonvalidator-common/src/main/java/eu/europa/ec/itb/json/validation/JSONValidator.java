@@ -134,6 +134,8 @@ public class JSONValidator {
             }
             overallReportDetailed.getContext().getItem().add(inputReportContent);
         }
+        specs.getDomainConfig().applyMetadata(overallReportDetailed, getValidationType());
+        specs.getDomainConfig().applyMetadata(overallReportAggregated, getValidationType());
         return new ReportPair(overallReportDetailed, overallReportAggregated);
     }
 

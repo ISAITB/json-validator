@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.stream.JsonWriter;
-import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import eu.europa.ec.itb.json.DomainConfig;
@@ -17,7 +15,6 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,12 +56,12 @@ public class ValidationSpecs {
                 // No preprocessing needed.
                 inputToUse = prettyPrint(input);
             } else {
-                inputToUse = new File(input.getParent(), UUID.randomUUID().toString() + ".json");
+                inputToUse = new File(input.getParent(), UUID.randomUUID() + ".json");
                 // A preprocessing JSONPath expression has been provided for the given validation type.
                 try (InputStream inputStream = new FileInputStream(input)) {
                     Object preprocessedJsonObject = JsonPath.parse(inputStream).read(expression);
                     Gson gson = new Gson();
-                    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(inputToUse.getAbsolutePath()), "UTF-8"))) {
+                    try (var writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(inputToUse.getAbsolutePath()), StandardCharsets.UTF_8))) {
                         gson.toJson(preprocessedJsonObject, writer);
                         writer.flush();
                         inputToUse = prettyPrint(inputToUse);
