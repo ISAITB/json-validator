@@ -10,7 +10,7 @@
 
 # JSON validator
 
-The **JSON validator** is a web application to validate JSON data against [JSON Schema](https://json-schema.org/).
+The **JSON validator** is a web application to validate JSON data against [JSON Schema](https://json-schema.org/) (Core Draft v4, v6, v7, v2019-09 and v2020-12).
 The application provides a fully reusable core that requires only configuration to determine the supported specifications,
 configured validation types and other validator customisations. The web application allows validation via:
 
