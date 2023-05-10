@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,29 +27,6 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
     private String defaultLocationAsPointerDescription;
     private String defaultAddInputToReportDescription;
     private String defaultLocaleDescription;
-    private Map<String, String> branchErrorMessages;
-    private Set<String> branchErrorMessageValues;
-
-    /**
-     * @return The branch error messages.
-     */
-    public Set<String> getBranchErrorMessageValues() {
-        return branchErrorMessageValues;
-    }
-
-    /**
-     * @return The branch error messages per validation type.
-     */
-    public Map<String, String> getBranchErrorMessages() {
-        return branchErrorMessages;
-    }
-
-    /**
-     * @param branchErrorMessages The branch error messages per validation type.
-     */
-    public void setBranchErrorMessages(Map<String, String> branchErrorMessages) {
-        this.branchErrorMessages = branchErrorMessages;
-    }
 
     /**
      * @return The set of accepted mime types for JSON input.
@@ -217,8 +193,6 @@ public class ApplicationConfig extends eu.europa.ec.itb.validation.commons.confi
         defaultLabels.put(ValidationConstants.INPUT_EXTERNAL_SCHEMA_COMBINATION_APPROACH, defaultExternalSchemaCombinationApproachDescription);
         defaultLabels.put(ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, defaultAddInputToReportDescription);
         defaultLabels.put(ValidationConstants.INPUT_LOCALE, defaultLocaleDescription);
-        // Branch error messages.
-        branchErrorMessageValues = new HashSet<>(getBranchErrorMessages().values());
     }
 
 }
