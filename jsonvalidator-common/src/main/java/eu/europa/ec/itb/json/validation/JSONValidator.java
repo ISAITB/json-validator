@@ -1,25 +1,23 @@
 package eu.europa.ec.itb.json.validation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitb.core.AnyContent;
 import com.gitb.core.ValueEmbeddingEnumeration;
 import com.gitb.tr.*;
 import com.gitb.vs.ValidateRequest;
 import com.gitb.vs.ValidationResponse;
-import eu.europa.ec.itb.json.ApplicationConfig;
+import com.networknt.schema.*;
+import com.networknt.schema.uri.URLFetcher;
 import eu.europa.ec.itb.json.DomainConfig;
+import eu.europa.ec.itb.json.validation.location.NodeCoordinateDetector;
 import eu.europa.ec.itb.validation.commons.*;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.config.DomainPluginConfigProvider;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.plugin.PluginManager;
 import eu.europa.ec.itb.validation.plugin.ValidationPlugin;
-import jakarta.json.stream.JsonParser;
-import jakarta.json.stream.JsonParsingException;
 import org.apache.commons.io.FileUtils;
-import org.leadpony.justify.api.JsonSchema;
- import org.leadpony.justify.api.JsonSchemaReader;
-import org.leadpony.justify.api.JsonValidationService;
-import org.leadpony.justify.api.ProblemHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +29,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Component that carries out the validation of provided JSON content.
@@ -52,14 +50,12 @@ public class JSONValidator {
     @Autowired
     private DomainPluginConfigProvider<DomainConfig> pluginConfigProvider = null;
     @Autowired
-    private ApplicationConfig appConfig = null;
-    @Autowired
-    private JsonValidationService jsonValidationService = null;
-    @Autowired
-    private LocalSchemaResolver localSchemaResolver = null;
+    private LocalSchemaCache localSchemaCache = null;
 
     private final ObjectFactory objectFactory = new ObjectFactory();
     private final ValidationSpecs specs;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ResourceBundle translationBundle;
 
     /**
      * Constructor.
@@ -68,6 +64,8 @@ public class JSONValidator {
      */
     public JSONValidator(ValidationSpecs specs) {
         this.specs = specs;
+        // The resource bundle for the internal validation engine error messages.
+        this.translationBundle = ResourceBundle.getBundle("i18n/jsv-messages", this.specs.getLocalisationHelper().getLocale());
     }
 
     /**
@@ -202,73 +200,69 @@ public class JSONValidator {
      * @param combinationApproach The way in which these should be combined (if multiple).
      * @return The list of error messages.
      */
-    private List<String> validateAgainstSetOfSchemas(List<FileInfo> schemaFileInfos, ValidationArtifactCombinationApproach combinationApproach) {
-        LinkedList<String> aggregatedErrorMessages = new LinkedList<>();
+    private List<Message> validateAgainstSetOfSchemas(List<FileInfo> schemaFileInfos, ValidationArtifactCombinationApproach combinationApproach) {
+        var aggregatedMessages = new LinkedList<Message>();
         if (combinationApproach == ValidationArtifactCombinationApproach.ALL) {
             // All schema validations must result in success.
             for (FileInfo fileInfo: schemaFileInfos) {
-                aggregatedErrorMessages.addAll(validateAgainstSchema(fileInfo.getFile()));
+                aggregatedMessages.addAll(validateAgainstSchema(fileInfo.getFile()));
             }
         } else if (combinationApproach == ValidationArtifactCombinationApproach.ONE_OF) {
             // All schemas need to be validated but only one should validate successfully.
             int successCount = 0;
             int branchCounter = 1;
             for (FileInfo fileInfo: schemaFileInfos) {
-                List<String> latestErrors = validateAgainstSchema(fileInfo.getFile());
+                var latestErrors = validateAgainstSchema(fileInfo.getFile());
                 if (latestErrors.isEmpty()) {
                     successCount += 1;
                 } else {
-                    addBranchErrors(aggregatedErrorMessages, latestErrors, branchCounter++);
+                    addBranchErrors(aggregatedMessages, latestErrors, branchCounter++);
                 }
             }
             if (successCount == 0) {
-                aggregatedErrorMessages.addFirst(appConfig.getBranchErrorMessages().get("oneOf"));
+                aggregatedMessages.addFirst(new Message(specs.getLocalisationHelper().localise("validator.label.exception.oneOfSchemasShouldBeValid")));
             } else if (successCount == 1) {
-                aggregatedErrorMessages.clear();
+                aggregatedMessages.clear();
             } else if (successCount > 1) {
-                aggregatedErrorMessages.add(specs.getLocalisationHelper().localise("validator.label.exception.onlyOneSchemaShouldBeValid", successCount));
+                aggregatedMessages.clear();
+                aggregatedMessages.add(new Message(specs.getLocalisationHelper().localise("validator.label.exception.onlyOneSchemaShouldBeValid", successCount)));
             }
         } else {
             // Any of the schemas should validate successfully.
             int branchCounter = 1;
             for (FileInfo fileInfo: schemaFileInfos) {
-                List<String> latestErrors = validateAgainstSchema(fileInfo.getFile());
+                List<Message> latestErrors = validateAgainstSchema(fileInfo.getFile());
                 if (latestErrors.isEmpty()) {
-                    aggregatedErrorMessages.clear();
+                    aggregatedMessages.clear();
                     break;
                 } else {
-                    addBranchErrors(aggregatedErrorMessages, latestErrors, branchCounter++);
+                    addBranchErrors(aggregatedMessages, latestErrors, branchCounter++);
                 }
             }
-            if (!aggregatedErrorMessages.isEmpty()) {
-                aggregatedErrorMessages.addFirst(appConfig.getBranchErrorMessages().get("anyOf"));
+            if (!aggregatedMessages.isEmpty()) {
+                aggregatedMessages.addFirst(new Message(specs.getLocalisationHelper().localise("validator.label.exception.anyOfSchemasShouldBeValid")));
             }
         }
-        return aggregatedErrorMessages;
+        return aggregatedMessages;
     }
 
     /**
      * Add errors relevant to a specific validation branch.
      *
-     * @param aggregatedErrorMessages The errors for all branches (used to collect new errors).
+     * @param aggregatedMessages The errors for all branches (used to collect new errors).
      * @param branchMessages The messages linked to the specific branch.
      * @param branchCounter The counter of the current branch.
      */
-    private void addBranchErrors(List<String> aggregatedErrorMessages, List<String> branchMessages, int branchCounter) {
-        boolean firstForBranch = true;
-        for (String error: branchMessages) {
-            if (firstForBranch) {
-                aggregatedErrorMessages.add(branchCounter+") "+error);
-                firstForBranch = false;
-            } else {
-                aggregatedErrorMessages.add("   "+error);
-            }
+    private void addBranchErrors(List<Message> aggregatedMessages, List<Message> branchMessages, int branchCounter) {
+        for (var error: branchMessages) {
+            error.setDescription("["+branchCounter+"]: "+error.getDescription());
+            aggregatedMessages.add(error);
         }
     }
 
     /**
      * Read the schema defined from the provided path.
-     *
+     * <p>
      * The schema loading in this case extends what the official spec foresees, allowing to read definitions
      * from local files (and reuse schemas).
      *
@@ -276,17 +270,25 @@ public class JSONValidator {
      * @return The parsed schema.
      */
     private JsonSchema readSchema(Path path) {
-        LocalSchemaResolver.RESOLUTION_STATE.set(new SchemaResolutionState(specs.getDomainConfig()));
         try {
-            var schemaReaderFactory = jsonValidationService
-                    .createSchemaReaderFactoryBuilder()
-                    .withSchemaResolver(localSchemaResolver)
+            var jsonNode = objectMapper.readTree(path.toFile());
+            var jsonSchemaVersion = JsonSchemaFactory.checkVersion(SpecVersionDetector.detect(jsonNode));
+            var metaSchema = jsonSchemaVersion.getInstance();
+            /*
+             * The schema factory is created per validation. This is done to avoid caching of schemas across validations that
+             * may be remotely loaded or schemas that are user-provided. In addition, it allows us to treat schemas that
+             * may use different specification versions.
+             */
+            var schemaFactory = JsonSchemaFactory.builder()
+                    .uriFetcher(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache), URLFetcher.SUPPORTED_SCHEMES)
+                    .addMetaSchema(metaSchema)
+                    .defaultMetaSchemaURI(metaSchema.getUri())
                     .build();
-            try (JsonSchemaReader schemaReader = schemaReaderFactory.createSchemaReader(path)) {
-                return schemaReader.read();
-            }
-        } finally {
-            LocalSchemaResolver.RESOLUTION_STATE.remove();
+            SchemaValidatorsConfig config = new SchemaValidatorsConfig();
+            config.setPathType(PathType.JSON_POINTER);
+            return schemaFactory.getSchema(jsonNode, config);
+        } catch (IOException e) {
+            throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }
     }
 
@@ -296,24 +298,28 @@ public class JSONValidator {
      * @param schemaFile The schema file to use.
      * @return The resulting error messages.
      */
-    private List<String> validateAgainstSchema(File schemaFile) {
-        JsonSchema schema;
+    private List<Message> validateAgainstSchema(File schemaFile) {
+        var schema = readSchema(schemaFile.toPath());
         try {
-            schema = readSchema(schemaFile.toPath());
-        } catch (JsonParsingException e) {
-            throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
+            var content = objectMapper.readTree(specs.getInputFileToUse());
+            return schema.validate(content).stream().map((message) -> {
+                String text = message.getMessage();
+                if (this.translationBundle.containsKey(message.getType())) {
+                    var localisedTemplate = this.translationBundle.getString(message.getType());
+                    var arguments = message.getArguments();
+                    var params = new String[(arguments == null ? 0 : arguments.length) + 1];
+                    params[0] = message.getPath();
+                    if (arguments != null) {
+                        System.arraycopy(arguments, 0, params, 1, params.length - 1);
+                    }
+                    text = MessageFormat.format(localisedTemplate, (Object[]) params);
+                    text = StringUtils.removeStart(text, "[] ");
+                }
+                return new Message(text, message.getPath());
+            }).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
         }
-        List<String> errorMessages = new ArrayList<>();
-        ProblemHandler handler = jsonValidationService.createProblemPrinterBuilder(errorMessages::add)
-                .withLocation(true)
-                .withLocale(specs.getLocalisationHelper().getLocale())
-                .build();
-        try (JsonParser parser = jsonValidationService.createParser(specs.getInputFileToUse().toPath(), schema, handler)) {
-            while (parser.hasNext()) {
-                parser.next();
-            }
-        }
-        return errorMessages;
     }
 
     /**
@@ -322,26 +328,26 @@ public class JSONValidator {
      * @return The resulting validation reports (detailed and aggregate).
      */
     private ReportPair validateInternal() {
-        List<String> aggregatedErrorMessages = new ArrayList<>();
+        List<Message> aggregatedMessages = new ArrayList<>();
         List<FileInfo> preconfiguredSchemaFiles = fileManager.getPreconfiguredValidationArtifacts(specs.getDomainConfig(), specs.getValidationType());
         if (!preconfiguredSchemaFiles.isEmpty()) {
-            ValidationArtifactCombinationApproach combinationApproach = specs.getDomainConfig().getSchemaInfo(specs.getValidationType()).getArtifactCombinationApproach();
-            aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(preconfiguredSchemaFiles, combinationApproach));
+            var combinationApproach = specs.getDomainConfig().getSchemaInfo(specs.getValidationType()).getArtifactCombinationApproach();
+            aggregatedMessages.addAll(validateAgainstSetOfSchemas(preconfiguredSchemaFiles, combinationApproach));
         }
         if (!specs.getExternalSchemas().isEmpty()) {
             // We apply "allOf" semantics when there are both preconfigured and external schemas.
-            aggregatedErrorMessages.addAll(validateAgainstSetOfSchemas(specs.getExternalSchemas(), specs.getExternalSchemaCombinationApproach()));
+            aggregatedMessages.addAll(validateAgainstSetOfSchemas(specs.getExternalSchemas(), specs.getExternalSchemaCombinationApproach()));
         }
-        return createReport(ErrorMessage.processMessages(aggregatedErrorMessages, appConfig.getBranchErrorMessageValues()));
+        return createReport(aggregatedMessages);
     }
 
     /**
      * Create a TAR validation report from a list of internal error message texts.
      *
-     * @param errorMessages The error messages to process.
+     * @param messages The error messages to process.
      * @return The corresponding reports (detailed and aggregate).
      */
-    private ReportPair createReport(List<ErrorMessage> errorMessages) {
+    private ReportPair createReport(List<Message> messages) {
         TAR report = new TAR();
         report.setDate(Utils.getXMLGregorianCalendarDateTime());
         report.setCounters(new ValidationCounters());
@@ -352,25 +358,28 @@ public class JSONValidator {
         if (specs.isProduceAggregateReport()) {
             aggregateReportItems = new AggregateReportItems(objectFactory, specs.getLocalisationHelper());
         }
-        if (errorMessages == null || errorMessages.isEmpty()) {
+        if (messages == null || messages.isEmpty()) {
             report.setResult(TestResultType.SUCCESS);
             report.getCounters().setNrOfErrors(BigInteger.ZERO);
         } else {
             report.setResult(TestResultType.FAILURE);
-            report.getCounters().setNrOfErrors(BigInteger.valueOf(errorMessages.size()));
-            for (ErrorMessage errorMessage: errorMessages) {
+            report.getCounters().setNrOfErrors(BigInteger.valueOf(messages.size()));
+
+            Function<String, String> locationSupplier;
+            if (specs.isLocationAsPointer()) {
+                locationSupplier = (contentPath) -> contentPath;
+            } else {
+                locationSupplier = new NodeCoordinateDetector(specs.getInputFileToUse());
+            }
+            for (var message: messages) {
                 BAR error = new BAR();
-                error.setDescription(errorMessage.getMessage());
-                if (specs.isLocationAsPointer()) {
-                    error.setLocation(errorMessage.getLocationPointer());
-                } else {
-                    error.setLocation(ValidationConstants.INPUT_CONTENT+":"+errorMessage.getLocationLine()+":"+errorMessage.getLocationColumn());
-                }
+                error.setDescription(message.getDescription());
+                error.setLocation(locationSupplier.apply(message.getContentPath()));
                 var elementForReport = objectFactory.createTestAssertionGroupReportsTypeError(error);
                 report.getReports().getInfoOrWarningOrError().add(elementForReport);
                 if (aggregateReportItems != null) {
                     // Aggregate based on severity and message (without location prefix).
-                    aggregateReportItems.updateForReportItem(elementForReport, e -> String.format("%s|%s", elementForReport.getName().getLocalPart(), errorMessage.getMessageWithoutLocation()));
+                    aggregateReportItems.updateForReportItem(elementForReport, e -> String.format("%s|%s", elementForReport.getName().getLocalPart(), message.getDescription()));
                 }
             }
         }
