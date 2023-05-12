@@ -16,15 +16,11 @@
             configure({
                 externalArtifactFileLabel: [[${localiser.localise('validator.label.optionContentFile')}]],
                 externalArtifactURILabel: [[${localiser.localise('validator.label.optionContentURI')}]],
-                externalArtifactSettings: {
-                    default: {
-                        filePlaceholder: [[${localiser.localise('validator.label.externalSchemaPlaceholder')}]],
-                    }
-                },
                 codeTypeObj: {name: "javascript", json: true},
                 isMinimalUI: [[${minimalUI}]],
                 artifactTypes: ['default'],
-                externalArtifacts: externalArtifacts
+                externalArtifacts: externalArtifacts,
+                labels: [(${labelConfig})]
             });
         </script>
         <script th:inline="javascript" th:if="${reportData}">
