@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -286,6 +285,8 @@ public class JSONValidator {
                     .build();
             SchemaValidatorsConfig config = new SchemaValidatorsConfig();
             config.setPathType(PathType.JSON_POINTER);
+            config.setLocale(specs.getLocalisationHelper().getLocale());
+            config.setResourceBundle(translationBundle);
             return schemaFactory.getSchema(jsonNode, config);
         } catch (IOException e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
@@ -302,21 +303,7 @@ public class JSONValidator {
         var schema = readSchema(schemaFile.toPath());
         try {
             var content = objectMapper.readTree(specs.getInputFileToUse());
-            return schema.validate(content).stream().map((message) -> {
-                String text = message.getMessage();
-                if (this.translationBundle.containsKey(message.getType())) {
-                    var localisedTemplate = this.translationBundle.getString(message.getType());
-                    var arguments = message.getArguments();
-                    var params = new String[(arguments == null ? 0 : arguments.length) + 1];
-                    params[0] = message.getPath();
-                    if (arguments != null) {
-                        System.arraycopy(arguments, 0, params, 1, params.length - 1);
-                    }
-                    text = MessageFormat.format(localisedTemplate, (Object[]) params);
-                    text = StringUtils.removeStart(text, "[] ");
-                }
-                return new Message(text, message.getPath());
-            }).collect(Collectors.toList());
+            return schema.validate(content).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), message.getPath())).collect(Collectors.toList());
         } catch (IOException e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
         }
