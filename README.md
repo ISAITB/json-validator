@@ -73,7 +73,7 @@ from module `jsonvalidator-war`. This is an all-in-one Spring Boot web applicati
 ## Prerequisites
 
 To build this project's libraries you require:
-* A JDK installation (11+).
+* A JDK installation (17+).
 * Maven (3+)
 * Locally installed [itb-commons](https://github.com/ISAITB/itb-commons) dependencies (see below).
 
