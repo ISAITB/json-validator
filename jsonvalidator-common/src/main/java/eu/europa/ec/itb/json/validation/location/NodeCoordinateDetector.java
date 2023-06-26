@@ -57,7 +57,7 @@ public class NodeCoordinateDetector implements Function<String, String> {
         if (rootNode != null && locationAwareFactory != null && StringUtils.isNotBlank(path)) {
             try {
                 var relatedNode = rootNode.at(JsonPointer.compile(path));
-                if (relatedNode != null) {
+                if (relatedNode != null && !relatedNode.isMissingNode()) {
                     location = locationAwareFactory.getLocationForNode(relatedNode);
                 }
             } catch (RuntimeException e) {
