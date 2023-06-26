@@ -366,7 +366,19 @@ public class JSONValidator {
                 report.getReports().getInfoOrWarningOrError().add(elementForReport);
                 if (aggregateReportItems != null) {
                     // Aggregate based on severity and message (without location prefix).
-                    aggregateReportItems.updateForReportItem(elementForReport, e -> String.format("%s|%s", elementForReport.getName().getLocalPart(), message.getDescription()));
+                    aggregateReportItems.updateForReportItem(elementForReport, e -> {
+                        var description = message.getDescription();
+                        if (description != null) {
+                            int positionStart = description.indexOf('[');
+                            if (positionStart == 0) {
+                                int positionEnd = description.indexOf("] ");
+                                if (positionEnd > positionStart) {
+                                    description = description.substring(positionEnd+2);
+                                }
+                            }
+                        }
+                        return String.format("%s|%s", elementForReport.getName().getLocalPart(), description);
+                    });
                 }
             }
         }
