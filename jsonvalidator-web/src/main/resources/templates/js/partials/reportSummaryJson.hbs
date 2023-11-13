@@ -1,0 +1,30 @@
+<div id="reportSummary" class="panel-body">
+    <div class="row">
+        <label class="col-sm-2 col-xs-3 control-label">{{data.translations.resultDateLabel}}</label>
+        <div><span class="form-control-static">{{data.date}}</span></div>
+    </div>
+    <div class="row">
+        <label class="col-sm-2 col-xs-3 control-label">{{data.translations.resultFileNameLabel}}</label>
+        <div><span class="form-control-static">{{data.fileName}}</span></div>
+    </div>
+    {{#if data.itemCount}}
+    <div class="row">
+        <label class="col-sm-2 col-xs-3 control-label">{{data.translations.resultItemCountLabel}}</label>
+        <div><span class="form-control-static">{{data.itemCount}}</span></div>
+    </div>
+    {{/if}}
+    {{#if data.validationTypeLabel}}
+    <div class="row">
+        <label class="col-sm-2 col-xs-3 control-label">{{data.translations.resultValidationTypeLabel}}</label>
+        <div><span class="form-control-static">{{data.validationTypeLabel}}</span></div>
+    </div>
+    {{/if}}
+    <div class="row">
+        <label class="col-sm-2 col-xs-3 control-label">{{data.translations.resultFindingsLabel}}</label>
+        <div><span class="form-control-static">{{data.translations.resultFindingsDetailsLabel}}</span></div>
+    </div>
+    <div class="row">
+        <label class="col-sm-2 col-xs-3 control-label">{{data.translations.resultResultLabel}}</label>
+        <div><span class="form-control-static overall-result {{data.resultValue}}">{{data.translations.resultValue}}</span></div>
+    </div>
+</div>

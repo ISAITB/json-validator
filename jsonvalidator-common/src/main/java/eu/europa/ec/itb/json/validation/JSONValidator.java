@@ -1,6 +1,8 @@
 package eu.europa.ec.itb.json.validation;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.gitb.core.AnyContent;
 import com.gitb.core.ValueEmbeddingEnumeration;
 import com.gitb.tr.*;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 @Scope("prototype")
 public class JSONValidator {
 
+    public static final String ITEM_COUNT = "itemCount";
     private static final Logger LOG = LoggerFactory.getLogger(JSONValidator.class);
 
     @Autowired
@@ -55,6 +58,7 @@ public class JSONValidator {
     private final ValidationSpecs specs;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ResourceBundle translationBundle;
+    private JsonNode contentNode;
 
     /**
      * Constructor.
@@ -117,8 +121,7 @@ public class JSONValidator {
             }
         }
         if (specs.isAddInputToReport()) {
-            overallReportDetailed.setContext(new AnyContent());
-            overallReportDetailed.getContext().setType("map");
+            ensureContextCreated(overallReportDetailed);
             AnyContent inputReportContent = new AnyContent();
             inputReportContent.setType("string");
             inputReportContent.setEmbeddingMethod(ValueEmbeddingEnumeration.STRING);
@@ -131,9 +134,29 @@ public class JSONValidator {
             }
             overallReportDetailed.getContext().getItem().add(inputReportContent);
         }
+        if (specs.getDomainConfig().isReportItemCount() && getContentNode() instanceof ArrayNode arrayNode) {
+            ensureContextCreated(overallReportDetailed);
+            var countItem = new AnyContent();
+            countItem.setType("number");
+            countItem.setName(ITEM_COUNT);
+            countItem.setValue(String.valueOf(arrayNode.size()));
+            overallReportDetailed.getContext().getItem().add(countItem);
+        }
         specs.getDomainConfig().applyMetadata(overallReportDetailed, getValidationType());
         specs.getDomainConfig().applyMetadata(overallReportAggregated, getValidationType());
         return new ReportPair(overallReportDetailed, overallReportAggregated);
+    }
+
+    /**
+     * Ensure the report's context is created.
+     *
+     * @param report The report.
+     */
+    private void ensureContextCreated(TAR report) {
+        if (report.getContext() == null) {
+            report.setContext(new AnyContent());
+            report.getContext().setType("map");
+        }
     }
 
     /**
@@ -301,12 +324,24 @@ public class JSONValidator {
      */
     private List<Message> validateAgainstSchema(File schemaFile) {
         var schema = readSchema(schemaFile.toPath());
-        try {
-            var content = objectMapper.readTree(specs.getInputFileToUse());
-            return schema.validate(content).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), message.getPath())).collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+        var content = getContentNode();
+        return schema.validate(content).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), message.getPath())).collect(Collectors.toList());
+    }
+
+    /**
+     * Parse the JSON node for the provided input file.
+     *
+     * @return The JSON node.
+     */
+    private JsonNode getContentNode() {
+        if (contentNode == null) {
+            try {
+                contentNode = objectMapper.readTree(specs.getInputFileToUse());
+            } catch (IOException e) {
+                throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+            }
         }
+        return contentNode;
     }
 
     /**
