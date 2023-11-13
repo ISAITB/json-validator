@@ -14,6 +14,23 @@ import java.util.Set;
 public class DomainConfig extends WebDomainConfig {
 
     private final Set<String> sharedSchemas = new HashSet<>();
+    private boolean reportItemCount = false;
+
+    /**
+     * Whether the result report should list the number of parsed items in case an array was provided.
+     *
+     * @return The flag value.
+     */
+    public boolean isReportItemCount() {
+        return reportItemCount;
+    }
+
+    /**
+     * @param reportItemCount  Whether the result report should list the number of parsed items in case an array was provided.
+     */
+    public void setReportItemCount(boolean reportItemCount) {
+        this.reportItemCount = reportItemCount;
+    }
 
     /**
      * Get the configured values for shared schema references.

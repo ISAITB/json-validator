@@ -16,8 +16,6 @@ import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.commons.web.BaseUploadController;
 import eu.europa.ec.itb.validation.commons.web.CSPNonceFilter;
 import eu.europa.ec.itb.validation.commons.web.Constants;
-import eu.europa.ec.itb.validation.commons.web.dto.Translations;
-import eu.europa.ec.itb.validation.commons.web.dto.UploadResult;
 import eu.europa.ec.itb.validation.commons.web.locale.CustomLocaleResolver;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;

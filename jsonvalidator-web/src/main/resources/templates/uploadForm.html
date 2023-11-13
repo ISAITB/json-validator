@@ -4,7 +4,7 @@
         <title th:replace="~{fragments/common :: header}">Validator</title>
         <script th:src="@{/webjars/codemirror/mode/javascript/javascript.js}"></script>
         <script th:src="@{/js/lib/FileSaver.min.js}"></script>
-        <script th:src="@{/js/itb-upload-json.js}"></script>
+        <script th:src="@{/js/itb-upload-json-min.js}"></script>
         <script th:attr="nonce=${nonce}" th:inline="javascript">
             var externalArtifacts = {};
             [# th:each="artifactInfoEntry : ${externalArtifactInfo}"]
@@ -20,7 +20,9 @@
                 isMinimalUI: [[${minimalUI}]],
                 artifactTypes: ['default'],
                 externalArtifacts: externalArtifacts,
-                labels: [(${labelConfig})]
+                labels: [(${labelConfig})],
+                reportTemplate: 'reportJson.hbs',
+                reportMinimalTemplate: 'reportMinimalJson.hbs'
             });
         </script>
         <script th:attr="nonce=${nonce}" th:inline="javascript" th:if="${reportData}">

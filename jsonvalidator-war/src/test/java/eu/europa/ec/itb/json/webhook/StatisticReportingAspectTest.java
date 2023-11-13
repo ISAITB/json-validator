@@ -1,8 +1,8 @@
 package eu.europa.ec.itb.json.webhook;
 
+import eu.europa.ec.itb.json.web.Translations;
 import eu.europa.ec.itb.json.web.UploadController;
-import eu.europa.ec.itb.validation.commons.web.dto.Translations;
-import eu.europa.ec.itb.validation.commons.web.dto.UploadResult;
+import eu.europa.ec.itb.json.web.UploadResult;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;

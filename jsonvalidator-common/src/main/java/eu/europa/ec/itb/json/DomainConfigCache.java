@@ -61,6 +61,7 @@ public class DomainConfigCache extends WebDomainConfigCache<DomainConfig> {
         super.addDomainConfiguration(domainConfig, config);
         addValidationArtifactInfo("validator.schemaFile", "validator.externalSchemas", "validator.externalSchemaCombinationApproach", domainConfig, config);
         domainConfig.getSharedSchemas().addAll(Arrays.asList(StringUtils.split(StringUtils.defaultIfBlank(config.getString("validator.referencedSchemas"), ""), ',')));
+        domainConfig.setReportItemCount(config.getBoolean("validator.reportContentArrayItemCount", false));
         addMissingDefaultValues(domainConfig.getWebServiceDescription(), appConfig.getDefaultLabels());
     }
 
