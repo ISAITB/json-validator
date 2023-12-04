@@ -5,6 +5,5 @@
 target
 application-dev.properties
 pom.xml.versionsBackup
-.github/badges
 /jsonvalidator-web/node/
 /jsonvalidator-web/node_modules/
