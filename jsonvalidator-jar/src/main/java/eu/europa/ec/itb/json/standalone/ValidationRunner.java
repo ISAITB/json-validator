@@ -149,7 +149,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                                 File csvReportFile = new File(xmlReportFile.getParentFile(), "report."+i+".csv");
                                 Files.deleteIfExists(pdfReportFile.toPath());
                                 Files.deleteIfExists(csvReportFile.toPath());
-                                reportGenerator.writeReport(xmlReportFile, pdfReportFile, localiser);
+                                reportGenerator.writeReport(xmlReportFile, pdfReportFile, localiser, domainConfig.isRichTextReports());
                                 csvReportGenerator.writeReport(xmlReportFile, csvReportFile, localiser, domainConfig);
                                 summary.append("- Detailed reports in [").append(xmlReportFile.getAbsolutePath()).append("], [").append(pdfReportFile.getAbsolutePath()).append("] and [").append(csvReportFile.getAbsolutePath()).append("]\n");
                             } else if (report.getCounters() != null && (report.getCounters().getNrOfAssertions().longValue() + report.getCounters().getNrOfErrors().longValue() + report.getCounters().getNrOfWarnings().longValue()) <= domainConfig.getMaximumReportsForXmlOutput()) {

@@ -144,6 +144,8 @@ public class JSONValidator {
         }
         specs.getDomainConfig().applyMetadata(overallReportDetailed, getValidationType());
         specs.getDomainConfig().applyMetadata(overallReportAggregated, getValidationType());
+        Utils.sanitizeIfNeeded(overallReportDetailed, specs.getDomainConfig());
+        Utils.sanitizeIfNeeded(overallReportAggregated, specs.getDomainConfig());
         return new ReportPair(overallReportDetailed, overallReportAggregated);
     }
 
