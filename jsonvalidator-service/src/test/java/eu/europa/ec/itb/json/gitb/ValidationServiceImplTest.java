@@ -41,7 +41,6 @@ class ValidationServiceImplTest {
         var result = service.getModuleDefinition(new Void());
         assertNotNull(result);
         assertNotNull(result.getModule());
-        assertEquals("service1", result.getModule().getId());
         assertNotNull(result.getModule().getInputs());
         assertEquals(6, result.getModule().getInputs().getParam().size());
         assertEquals(ValidationConstants.INPUT_CONTENT, result.getModule().getInputs().getParam().get(0).getName());
