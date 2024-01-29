@@ -9,7 +9,7 @@ import com.gitb.tr.*;
 import com.gitb.vs.ValidateRequest;
 import com.gitb.vs.ValidationResponse;
 import com.networknt.schema.*;
-import com.networknt.schema.uri.URLFetcher;
+import com.networknt.schema.i18n.ResourceBundleMessageSource;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.validation.location.NodeCoordinateDetector;
 import eu.europa.ec.itb.validation.commons.*;
@@ -57,7 +57,6 @@ public class JSONValidator {
     private final ObjectFactory objectFactory = new ObjectFactory();
     private final ValidationSpecs specs;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ResourceBundle translationBundle;
     private JsonNode contentNode;
 
     /**
@@ -67,8 +66,6 @@ public class JSONValidator {
      */
     public JSONValidator(ValidationSpecs specs) {
         this.specs = specs;
-        // The resource bundle for the internal validation engine error messages.
-        this.translationBundle = ResourceBundle.getBundle("i18n/jsv-messages", this.specs.getLocalisationHelper().getLocale());
     }
 
     /**
@@ -304,14 +301,15 @@ public class JSONValidator {
              * may use different specification versions.
              */
             var schemaFactory = JsonSchemaFactory.builder()
-                    .uriFetcher(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache), URLFetcher.SUPPORTED_SCHEMES)
+                    .schemaLoaders(schemaLoaders -> schemaLoaders.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache)))
                     .addMetaSchema(metaSchema)
                     .defaultMetaSchemaURI(metaSchema.getUri())
                     .build();
             SchemaValidatorsConfig config = new SchemaValidatorsConfig();
             config.setPathType(PathType.JSON_POINTER);
             config.setLocale(specs.getLocalisationHelper().getLocale());
-            config.setResourceBundle(translationBundle);
+            config.setMessageSource(new ResourceBundleMessageSource("i18n/jsv-messages"));
+            config.setLocale(this.specs.getLocalisationHelper().getLocale());
             return schemaFactory.getSchema(jsonNode, config);
         } catch (IOException e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
@@ -327,7 +325,7 @@ public class JSONValidator {
     private List<Message> validateAgainstSchema(File schemaFile) {
         var schema = readSchema(schemaFile.toPath());
         var content = getContentNode();
-        return schema.validate(content).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), message.getPath())).collect(Collectors.toList());
+        return schema.validate(content).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), message.getInstanceLocation().toString())).collect(Collectors.toList());
     }
 
     /**
