@@ -302,8 +302,8 @@ public class JSONValidator {
              */
             var schemaFactory = JsonSchemaFactory.builder()
                     .schemaLoaders(schemaLoaders -> schemaLoaders.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache)))
-                    .addMetaSchema(metaSchema)
-                    .defaultMetaSchemaURI(metaSchema.getUri())
+                    .metaSchema(metaSchema)
+                    .defaultMetaSchemaIri(metaSchema.getIri())
                     .build();
             SchemaValidatorsConfig config = new SchemaValidatorsConfig();
             config.setPathType(PathType.JSON_POINTER);
