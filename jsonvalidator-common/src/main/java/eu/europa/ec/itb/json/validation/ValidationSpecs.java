@@ -144,7 +144,10 @@ public class ValidationSpecs {
     private File prettyPrint(File input) {
         try (FileReader in = new FileReader(input)) {
             JsonElement json = com.google.gson.JsonParser.parseReader(in);
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .serializeNulls()
+                    .create();
             String jsonOutput = gson.toJson(json);
             File output = new File(input.getParent(), input.getName() + ".pretty");
             FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
