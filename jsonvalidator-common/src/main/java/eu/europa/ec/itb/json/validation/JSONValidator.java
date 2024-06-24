@@ -10,8 +10,9 @@ import com.gitb.vs.ValidateRequest;
 import com.gitb.vs.ValidationResponse;
 import com.networknt.schema.*;
 import com.networknt.schema.i18n.ResourceBundleMessageSource;
+import com.networknt.schema.serialization.JsonNodeReader;
+import com.networknt.schema.utils.JsonNodes;
 import eu.europa.ec.itb.json.DomainConfig;
-import eu.europa.ec.itb.json.validation.location.NodeCoordinateDetector;
 import eu.europa.ec.itb.validation.commons.*;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.config.DomainPluginConfigProvider;
@@ -20,6 +21,7 @@ import eu.europa.ec.itb.validation.plugin.PluginManager;
 import eu.europa.ec.itb.validation.plugin.ValidationPlugin;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +32,12 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -131,7 +137,7 @@ public class JSONValidator {
             }
             overallReportDetailed.getContext().getItem().add(inputReportContent);
         }
-        if (specs.getDomainConfig().isReportItemCount() && getContentNode() instanceof ArrayNode arrayNode) {
+        if (specs.getDomainConfig().isReportItemCount() && getContentNode(null) instanceof ArrayNode arrayNode) {
             ensureContextCreated(overallReportDetailed);
             var countItem = new AnyContent();
             countItem.setType("number");
@@ -288,9 +294,9 @@ public class JSONValidator {
      * from local files (and reuse schemas).
      *
      * @param path The schema path.
-     * @return The parsed schema.
+     * @return The parsed schema and JSON node reader to use.
      */
-    private JsonSchema readSchema(Path path) {
+    private Pair<JsonSchema, JsonNodeReader> readSchema(Path path) {
         try {
             var jsonNode = objectMapper.readTree(path.toFile());
             var jsonSchemaVersion = JsonSchemaFactory.checkVersion(SpecVersionDetector.detect(jsonNode));
@@ -300,19 +306,49 @@ public class JSONValidator {
              * may be remotely loaded or schemas that are user-provided. In addition, it allows us to treat schemas that
              * may use different specification versions.
              */
+            var jsonReader = getJsonReader();
             var schemaFactory = JsonSchemaFactory.builder()
                     .schemaLoaders(schemaLoaders -> schemaLoaders.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache)))
                     .metaSchema(metaSchema)
                     .defaultMetaSchemaIri(metaSchema.getIri())
+                    .jsonNodeReader(jsonReader)
                     .build();
-            SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-            config.setPathType(PathType.JSON_POINTER);
-            config.setLocale(specs.getLocalisationHelper().getLocale());
-            config.setMessageSource(new ResourceBundleMessageSource("i18n/jsv-messages"));
-            config.setLocale(this.specs.getLocalisationHelper().getLocale());
-            return schemaFactory.getSchema(jsonNode, config);
+            var schemaConfig = SchemaValidatorsConfig.builder()
+                    .pathType(PathType.JSON_POINTER)
+                    .locale(specs.getLocalisationHelper().getLocale())
+                    .messageSource(new ResourceBundleMessageSource("i18n/jsv-messages"))
+                    .build();
+            return Pair.of(schemaFactory.getSchema(jsonNode, schemaConfig), jsonReader);
         } catch (IOException e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
+        }
+    }
+
+    /**
+     * Create the reader implementation to read the JSON with (is location-aware depending on the configuration).
+     *
+     * @return The reader.
+     */
+    private JsonNodeReader getJsonReader() {
+        var jsonReaderBuilder = JsonNodeReader.builder();
+        if (!specs.isLocationAsPointer()) {
+            jsonReaderBuilder = jsonReaderBuilder.locationAware();
+        }
+        return jsonReaderBuilder.build();
+    }
+
+    private Function<ValidationMessage, String> getLocationMapper() {
+        if (specs.isLocationAsPointer()) {
+            return (msg) -> msg.getInstanceLocation().toString();
+        } else {
+            return (msg) -> {
+                var nodeLocation = JsonNodes.tokenLocationOf(msg.getInstanceNode());
+                int lineNumber = 0;
+                if (nodeLocation != null && nodeLocation.getLineNr() > 0) {
+                    lineNumber = nodeLocation.getLineNr();
+                }
+                return "%s:%s:0".formatted(ValidationConstants.INPUT_CONTENT, lineNumber);
+            };
         }
     }
 
@@ -323,9 +359,9 @@ public class JSONValidator {
      * @return The resulting error messages.
      */
     private List<Message> validateAgainstSchema(File schemaFile) {
-        var schema = readSchema(schemaFile.toPath());
-        var content = getContentNode();
-        return schema.validate(content).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), message.getInstanceLocation().toString())).collect(Collectors.toList());
+        var schemaInfo = readSchema(schemaFile.toPath());
+        var locationMapper = getLocationMapper();
+        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), locationMapper.apply(message))).collect(Collectors.toList());
     }
 
     /**
@@ -333,10 +369,14 @@ public class JSONValidator {
      *
      * @return The JSON node.
      */
-    private JsonNode getContentNode() {
+    private JsonNode getContentNode(JsonNodeReader reader) {
         if (contentNode == null) {
-            try {
-                contentNode = objectMapper.readTree(specs.getInputFileToUse());
+            try (var input = Files.newInputStream(specs.getInputFileToUse().toPath())) {
+                if (reader != null) {
+                    contentNode = reader.readTree(input, InputFormat.JSON);
+                } else {
+                    contentNode = objectMapper.readTree(input);
+                }
             } catch (IOException e) {
                 throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
             }
@@ -386,17 +426,10 @@ public class JSONValidator {
         } else {
             report.setResult(TestResultType.FAILURE);
             report.getCounters().setNrOfErrors(BigInteger.valueOf(messages.size()));
-
-            Function<String, String> locationSupplier;
-            if (specs.isLocationAsPointer()) {
-                locationSupplier = (contentPath) -> contentPath;
-            } else {
-                locationSupplier = new NodeCoordinateDetector(specs.getInputFileToUse());
-            }
             for (var message: messages) {
                 BAR error = new BAR();
                 error.setDescription(message.getDescription());
-                error.setLocation(locationSupplier.apply(message.getContentPath()));
+                error.setLocation(message.getContentPath());
                 var elementForReport = objectFactory.createTestAssertionGroupReportsTypeError(error);
                 report.getReports().getInfoOrWarningOrError().add(elementForReport);
                 if (aggregateReportItems != null) {
