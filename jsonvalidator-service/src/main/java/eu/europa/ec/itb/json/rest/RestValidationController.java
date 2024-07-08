@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,9 +67,56 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
     @ApiResponse(responseCode = "404", description = "Not found (for an invalid domain value)", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @PostMapping(value = "/{domain}/api/validate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE } )
     public ResponseEntity<StreamingResponseBody> validate(
-            @Parameter(required = true, name = "domain", description = "A fixed value corresponding to the specific validation domain.")
+            @Parameter(required = true, name = "domain", description = "A fixed value corresponding to the specific validation domain.",
+                    examples = {
+                            @ExampleObject(name="order", summary="Sample 'order' configuration", value="order", description = "The domain value to use for the demo 'order' validator at https://www.itb.ec.europe.eu/json/order/upload."),
+                            @ExampleObject(name="any", summary="Generic 'any' configuration", value = "any", description = "The domain value to use for the generic 'any' validator at https://www.itb.ec.europe.eu/json/any/upload used to validate JSON with user-provided schemas.")
+                    }
+            )
             @PathVariable("domain") String domain,
             @Parameter(required = true, name = "input", description = "The input for the validation (content and metadata for one JSON document).")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            examples = {
+                                    @ExampleObject(name="order1", summary = "Validate string", description = "Validate content provided as a string for the 'large' validation type of the 'order' sample validator (see https://www.itb.ec.europe.eu/json/order/upload). To try it out select also 'order' for the 'domain' parameter.", value = """
+                                    {
+                                        "contentToValidate": "{\\r\\n  \\"shipTo\\": {\\r\\n    \\"name\\": \\"John Doe\\",\\r\\n    \\"street\\": \\"Europa Avenue 123\\",\\r\\n    \\"city\\": \\"Brussels\\",\\r\\n    \\"zip\\": 1000\\r\\n  },\\r\\n  \\"billTo\\": {\\r\\n    \\"name\\": \\"Jane Doe\\",\\r\\n    \\"street\\": \\"Europa Avenue 210\\",\\r\\n    \\"city\\": \\"Brussels\\",\\r\\n    \\"zip\\": 1000\\r\\n  },\\r\\n  \\"orderDate\\": \\"2020-01-22\\",\\r\\n  \\"comment\\": \\"Send in one package please\\",\\r\\n  \\"items\\": [\\r\\n    {\\r\\n      \\"partNum\\": \\"XYZ-123876\\",\\r\\n      \\"productName\\": \\"Mouse\\",\\r\\n      \\"quantity\\": 20,\\r\\n      \\"priceEUR\\": 15.99,\\r\\n      \\"comment\\": \\"Confirm this is wireless\\"\\r\\n    },\\r\\n    {\\r\\n      \\"partNum\\": \\"ABC-32478\\",\\r\\n      \\"productName\\": \\"Keyboard\\",\\r\\n      \\"quantity\\": 15,\\r\\n      \\"priceEUR\\": 25.50\\r\\n    }\\r\\n  ]\\r\\n}",
+                                        "validationType": "large"
+                                    }
+                                    """),
+                                    @ExampleObject(name="order2", summary = "Validate remote URI", description = "Validate content provided as a URI for the 'large' validation type of the 'order' sample validator (see https://www.itb.ec.europe.eu/json/order/upload). To try it out select also 'order' for the 'domain' parameter.", value = """
+                                    {
+                                        "contentToValidate": "https://www.itb.ec.europa.eu/files/samples/json/sample-invalid.json",
+                                        "embeddingMethod": "URL",
+                                        "validationType": "large"
+                                    }
+                                    """),
+                                    @ExampleObject(name="order3", summary = "Validate Base64-encoded content", description = "Validate content encoded in a Base64 string for the 'large' validation type of the 'order' sample validator (see https://www.itb.ec.europe.eu/json/order/upload). To try it out select also 'order' for the 'domain' parameter.", value = """
+                                    {
+                                        "contentToValidate": "ewogICJzaGlwVG8iOiB7CiAgICAibmFtZSI6ICJKb2huIERvZSIsCiAgICAic3RyZWV0IjogIkV1cm9wYSBBdmVudWUgMTIzIiwKICAgICJjaXR5IjogIkJydXNzZWxzIiwKICAgICJ6aXAiOiAxMDAwCiAgfSwKICAiYmlsbFRvIjogewogICAgIm5hbWUiOiAiSmFuZSBEb2UiLAogICAgInN0cmVldCI6ICJFdXJvcGEgQXZlbnVlIDIxMCIsCiAgICAiY2l0eSI6ICJCcnVzc2VscyIsCiAgICAiemlwIjogMTAwMAogIH0sCiAgIm9yZGVyRGF0ZSI6ICIyMDIwLTAxLTIyIiwKICAiY29tbWVudCI6ICJTZW5kIGluIG9uZSBwYWNrYWdlIHBsZWFzZSIsCiAgIml0ZW1zIjogWwogICAgewogICAgICAicGFydE51bSI6ICJYWVotMTIzODc2IiwKICAgICAgInByb2R1Y3ROYW1lIjogIk1vdXNlIiwKICAgICAgInF1YW50aXR5IjogMjAsCiAgICAgICJwcmljZUVVUiI6IDE1Ljk5LAogICAgICAiY29tbWVudCI6ICJDb25maXJtIHRoaXMgaXMgd2lyZWxlc3MiCiAgICB9LAogICAgewogICAgICAicGFydE51bSI6ICJBQkMtMzI0NzgiLAogICAgICAicHJvZHVjdE5hbWUiOiAiS2V5Ym9hcmQiLAogICAgICAicXVhbnRpdHkiOiAxNSwKICAgICAgInByaWNlRVVSIjogMjUuNTAKICAgIH0KICBdCn0=",
+                                        "embeddingMethod": "BASE64",
+                                        "validationType": "large"
+                                    }
+                                    """),
+                                    @ExampleObject(name="any", summary = "Validate remote URI with user-provided schemas", description = "Validate content provided as a URI and using user-provided schemas, with the generic 'any' validator (see https://www.itb.ec.europe.eu/json/any/upload). To try it out select also 'any' for the 'domain' parameter.", value = """
+                                    {
+                                        "contentToValidate": "https://www.itb.ec.europa.eu/files/samples/json/sample-invalid.json",
+                                        "embeddingMethod": "URL",
+                                        "externalSchemas": [
+                                            {
+                                                "schema": "https://raw.githubusercontent.com/ISAITB/validator-resources-json-sample/master/resources/schemas/PurchaseOrder.schema.json",
+                                                "embeddingMethod": "URL"
+                                            },
+                                            {
+                                                "schema": "https://raw.githubusercontent.com/ISAITB/validator-resources-json-sample/master/resources/schemas/PurchaseOrder-large.schema.json",
+                                                "embeddingMethod": "URL"
+                                            }
+                                        ]
+                                    }
+                                    """)
+                            }
+                    )
+            )
             @RequestBody Input in,
             HttpServletRequest request
     ) {
@@ -143,9 +191,62 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
     @ApiResponse(responseCode = "404", description = "Not found (for an invalid domain value)", content = @Content)
     @PostMapping(value = "/{domain}/api/validateMultiple", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Output[] validateMultiple(
-            @Parameter(required = true, name = "domain", description = "A fixed value corresponding to the specific validation domain.")
+            @Parameter(required = true, name = "domain", description = "A fixed value corresponding to the specific validation domain.",
+                    examples = {
+                            @ExampleObject(name="order", summary="Sample 'order' configuration", value="order", description = "The domain value to use for the demo 'order' validator at https://www.itb.ec.europe.eu/json/order/upload."),
+                            @ExampleObject(name="any", summary="Generic 'any' configuration", value = "any", description = "The domain value to use for the generic 'any' validator at https://www.itb.ec.europe.eu/json/any/upload used to validate JSON with user-provided schemas.")
+                    }
+            )
             @PathVariable("domain") String domain,
             @Parameter(required = true, name = "input", description = "The input for the validation (content and metadata for one or more JSON documents).")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            examples = {
+                                    @ExampleObject(name="order", summary = "Validate remote URIs", description = "Validate content provided as URIs for the 'large' validation type of the 'order' sample validator (see https://www.itb.ec.europe.eu/json/order/upload). To try it out select also 'order' for the 'domain' parameter.", value = """
+                                    [
+                                        {
+                                            "contentToValidate": "https://www.itb.ec.europa.eu/files/samples/json/sample-invalid.json",
+                                            "embeddingMethod": "URL",
+                                            "validationType": "large"
+                                        },
+                                        {
+                                            "contentToValidate": "https://www.itb.ec.europa.eu/files/samples/json/sample-invalid.json",
+                                            "embeddingMethod": "URL",
+                                            "validationType": "basic"
+                                        }
+                                    ]
+                                    """),
+                                    @ExampleObject(name="any", summary = "Validate remote URIs with user-provided schemas", description = "Validate content provided as URIs and using user-provided schemas, with the generic 'any' validator (see https://www.itb.ec.europe.eu/json/any/upload). To try it out select also 'any' for the 'domain' parameter.", value = """
+                                    [
+                                        {
+                                            "contentToValidate": "https://www.itb.ec.europa.eu/files/samples/json/sample-invalid.json",
+                                            "embeddingMethod": "URL",
+                                            "externalSchemas": [
+                                                {
+                                                    "schema": "https://raw.githubusercontent.com/ISAITB/validator-resources-json-sample/master/resources/schemas/PurchaseOrder.schema.json",
+                                                    "embeddingMethod": "URL"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "contentToValidate": "https://www.itb.ec.europa.eu/files/samples/json/sample-invalid.json",
+                                            "embeddingMethod": "URL",
+                                            "externalSchemas": [
+                                                {
+                                                    "schema": "https://raw.githubusercontent.com/ISAITB/validator-resources-json-sample/master/resources/schemas/PurchaseOrder.schema.json",
+                                                    "embeddingMethod": "URL"
+                                                },
+                                                {
+                                                    "schema": "https://raw.githubusercontent.com/ISAITB/validator-resources-json-sample/master/resources/schemas/PurchaseOrder-large.schema.json",
+                                                    "embeddingMethod": "URL"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                    """)
+                            }
+                    )
+            )
             @RequestBody Input[] inputs,
             HttpServletRequest request
     ) {
