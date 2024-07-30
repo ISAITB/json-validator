@@ -459,7 +459,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
     private InputStream getInputStream(String contentType, InputStream inputStream, String uri, String string) {
         return switch (contentType) {
             case CONTENT_TYPE_FILE -> inputStream;
-            case CONTENT_TYPE_URI -> this.fileManager.getInputStreamFromURL(uri);
+            case CONTENT_TYPE_URI -> this.fileManager.getInputStreamFromURL(uri, null).stream();
             case CONTENT_TYPE_STRING -> new ByteArrayInputStream(string.getBytes());
             default -> null;
         };

@@ -126,7 +126,7 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
 			ValueEmbeddingEnumeration contentEmbeddingMethod = inputHelper.validateContentEmbeddingMethod(validateRequest, ValidationConstants.INPUT_EMBEDDING_METHOD);
 			boolean locationAsPointer = getInputAsBoolean(validateRequest, ValidationConstants.INPUT_LOCATION_AS_POINTER, false);
             boolean addInputToReport = getInputAsBoolean(validateRequest, ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, true);
-            File contentToValidate = inputHelper.validateContentToValidate(validateRequest, ValidationConstants.INPUT_CONTENT, contentEmbeddingMethod, tempFolderPath);
+            File contentToValidate = inputHelper.validateContentToValidate(validateRequest, ValidationConstants.INPUT_CONTENT, contentEmbeddingMethod, null, tempFolderPath);
             String validationType = inputHelper.validateValidationType(domainConfig, validateRequest, ValidationConstants.INPUT_VALIDATION_TYPE);
             List<FileInfo> externalSchemas = inputHelper.validateExternalArtifacts(domainConfig, validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMAS, ValidationConstants.INPUT_EXTERNAL_SCHEMAS_SCHEMA, ValidationConstants.INPUT_EMBEDDING_METHOD, validationType, null, tempFolderPath);
             ValidationArtifactCombinationApproach externalSchemaCombinationApproach = validateExternalSchemaCombinationApproach(validateRequest, validationType);
