@@ -157,7 +157,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
             var contentEmbeddingMethod = inputHelper.getEmbeddingMethod(in.getEmbeddingMethod());
             var externalSchemaCombinationApproach = inputHelper.getValidationArtifactCombinationApproach(domainConfig, validationType, in.getExternalSchemaCombinationApproach());
             var externalSchemas = getExternalSchemas(domainConfig, in.getExternalSchemas(), validationType, null, parentFolder);
-            var contentToValidate = inputHelper.validateContentToValidate(in.getContentToValidate(), contentEmbeddingMethod, null, parentFolder);
+            var contentToValidate = inputHelper.validateContentToValidate(in.getContentToValidate(), contentEmbeddingMethod, null, parentFolder, domainConfig.getHttpVersion());
             var builder = ValidationSpecs.builder(contentToValidate, localiser, domainConfig)
                     .withValidationType(validationType)
                     .withExternalSchemas(externalSchemas, externalSchemaCombinationApproach);
