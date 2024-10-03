@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,11 +84,11 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
                 } else if (FLAG_INPUT.equalsIgnoreCase(args[i])) {
                     if (args.length > i+1) {
                         String path = args[++i];
-                        inputs.add(new ValidationInput(getContent(path, parentFolder), path));
+                        inputs.add(new ValidationInput(getContent(path, parentFolder, domainConfig.getHttpVersion()), path));
                     }
                 } else if (FLAG_SCHEMA.equalsIgnoreCase(args[i])) {
                     if (args.length > i + 1) {
-                        externalSchemaFileInfo.add(new FileInfo(getContent(args[++i], parentFolder)));
+                        externalSchemaFileInfo.add(new FileInfo(getContent(args[++i], parentFolder, domainConfig.getHttpVersion())));
                     }
                 } else if (FLAG_SCHEMA_COMBINATION.equalsIgnoreCase(args[i])) {
                     if (args.length > i + 1) {
@@ -179,19 +180,20 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
     }
 
     /**
-     * Get the JSON content to validate based ont he provided path (can be a URL or file reference).
+     * Get the JSON content to validate based on the provided path (can be a URL or file reference).
      *
      * @param contentPath The path to process.
      * @param parentFolder The validation run's temporary folder.
+     * @param httpVersion The HTTP version to use.
      * @return The file with the JSON content to use for the validation.
      * @throws IOException If an IO error occurs.
      */
-    private File getContent(String contentPath, File parentFolder) throws IOException {
+    private File getContent(String contentPath, File parentFolder, HttpClient.Version httpVersion) throws IOException {
         File fileToUse;
         if (isValidURL(contentPath)) {
             // Value is a URL.
             try {
-                fileToUse = fileManager.getFileFromURL(parentFolder, contentPath);
+                fileToUse = fileManager.getFileFromURL(parentFolder, contentPath, httpVersion);
             } catch (IOException e) {
                 throw new IllegalArgumentException("Unable to read file from URL ["+contentPath+"]");
             }

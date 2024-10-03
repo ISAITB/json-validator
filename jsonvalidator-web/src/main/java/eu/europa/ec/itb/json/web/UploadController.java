@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.http.HttpClient;
 import java.util.*;
 
 import static eu.europa.ec.itb.validation.commons.web.Constants.*;
@@ -164,14 +165,14 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
             result.setMessage(localisationHelper.localise("validator.label.exception.providedValidationTypeNotValid"));
         } else {
             InputStream stream = null;
-            try (InputStream fis = getInputStream(contentType, file.getInputStream(), uri, string)) {
+            try (InputStream fis = getInputStream(contentType, file.getInputStream(), uri, string, config.getHttpVersion())) {
                 if (fileManager.checkFileType(fis)) {
-                    stream = getInputStream(contentType, file.getInputStream(), uri, string);
+                    stream = getInputStream(contentType, file.getInputStream(), uri, string, config.getHttpVersion());
                 } else {
                     result.setMessage(localisationHelper.localise("validator.label.exception.providedInputNotJSON"));
                 }
             } catch (IOException e) {
-                logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
+                logger.error("Error while reading uploaded file [{}]", e.getMessage(), e);
                 result.setMessage(localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
             }
             if (stream != null) {
@@ -190,9 +191,9 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                     List<FileInfo> externalSchemas = new ArrayList<>();
                     boolean proceedToValidate = true;
                     try {
-                        externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, externalSchemaString, config.getSchemaInfo(validationType), tempFolderForRequest);
+                        externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, externalSchemaString, config.getSchemaInfo(validationType), tempFolderForRequest, config.getHttpVersion());
                     } catch (IOException e) {
-                        logger.error("Error while reading uploaded file [" + e.getMessage() + "]", e);
+                        logger.error("Error while reading uploaded file [{}]", e.getMessage(), e);
                         result.setMessage(localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
                         proceedToValidate = false;
                     }
@@ -221,7 +222,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                                     fileName, reports.getDetailedReport(), reports.getAggregateReport(),
                                     new Translations(localisationHelper, reports.getDetailedReport(), config));
                         } catch (IOException e) {
-                            logger.error("Error generating detailed report [" + e.getMessage() + "]", e);
+                            logger.error("Error generating detailed report [{}]", e.getMessage(), e);
                             result.setMessage(localisationHelper.localise("validator.label.exception.errorGeneratingDetailedReport", e.getMessage()));
                         }
                     }
@@ -229,7 +230,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                     logger.error(e.getMessageForLog(), e);
                     result.setMessage(e.getMessageForDisplay(localisationHelper));
                 } catch (Exception e) {
-                    logger.error("An error occurred during the validation [" + e.getMessage() + "]", e);
+                    logger.error("An error occurred during the validation [{}]", e.getMessage(), e);
                     if (e.getMessage() != null) {
                         result.setMessage(localisationHelper.localise("validator.label.exception.unexpectedErrorDuringValidationWithParams", e.getMessage()));
                     } else {
@@ -347,11 +348,12 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @param externalUri The schemas provided as URIs.
      * @param schemaInfo The schema information from the domain.
      * @param parentFolder The temporary folder to use for file system storage.
+     * @param httpVersion The HTTP version to use.
      * @return The list of user-provided artifacts.
      * @throws IOException If an IO error occurs.
      */
     private List<FileInfo> getExternalFiles(String[] externalContentType, MultipartFile[] externalFiles, String[] externalUri, String[] externalString,
-                                            ValidationArtifactInfo schemaInfo, File parentFolder) throws IOException {
+                                            ValidationArtifactInfo schemaInfo, File parentFolder, HttpClient.Version httpVersion) throws IOException {
         List<FileInfo> lis = new ArrayList<>();
         if (externalContentType != null) {
             for (int i=0; i<externalContentType.length; i++) {
@@ -370,7 +372,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                         currentExtString = externalString[i];
                     }
 
-                    inputFile = getInputFile(externalContentType[i], currentExtFile, currentExtUri, currentExtString, parentFolder);
+                    inputFile = getInputFile(externalContentType[i], currentExtFile, currentExtUri, currentExtString, parentFolder, httpVersion);
                     if (inputFile != null) {
                         lis.add(new FileInfo(inputFile));
                     }
@@ -424,10 +426,11 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @param inputUri The provided URI to load the content from.
      * @param inputString The provided direct input string to load the content from.
      * @param parentFolder The temporary folder to use.
+     * @param httpVersion The HTTP version to use.
      * @return The input content's file.
      * @throws IOException If an error occurs.
      */
-    private File getInputFile(String contentType, MultipartFile inputFile, String inputUri, String inputString, File parentFolder) throws IOException {
+    private File getInputFile(String contentType, MultipartFile inputFile, String inputUri, String inputString, File parentFolder, HttpClient.Version httpVersion) throws IOException {
         File file = null;
         if (CONTENT_TYPE_FILE.equals(contentType)) {
             if (inputFile!=null && !inputFile.isEmpty()) {
@@ -437,7 +440,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
             }
         } else if (CONTENT_TYPE_URI.equals(contentType)) {
             if (StringUtils.isNotBlank(inputUri)) {
-                file = this.fileManager.getFileFromURL(parentFolder, inputUri);
+                file = this.fileManager.getFileFromURL(parentFolder, inputUri, httpVersion);
             }
         } else if (CONTENT_TYPE_STRING.equals(contentType)) {
             if (StringUtils.isNotBlank(inputString)) {
@@ -454,12 +457,13 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @param inputStream The stream.
      * @param uri The URI.
      * @param string The text content
+     * @param httpVersion The HTTP version to use.
      * @return The stream to read.
      */
-    private InputStream getInputStream(String contentType, InputStream inputStream, String uri, String string) {
+    private InputStream getInputStream(String contentType, InputStream inputStream, String uri, String string, HttpClient.Version httpVersion) {
         return switch (contentType) {
             case CONTENT_TYPE_FILE -> inputStream;
-            case CONTENT_TYPE_URI -> this.fileManager.getInputStreamFromURL(uri, null).stream();
+            case CONTENT_TYPE_URI -> this.fileManager.getInputStreamFromURL(uri, null, httpVersion).stream();
             case CONTENT_TYPE_STRING -> new ByteArrayInputStream(string.getBytes());
             default -> null;
         };
