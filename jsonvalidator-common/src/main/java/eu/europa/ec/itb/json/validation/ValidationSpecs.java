@@ -1,5 +1,9 @@
 package eu.europa.ec.itb.json.validation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -23,6 +27,11 @@ import java.util.UUID;
  */
 public class ValidationSpecs {
 
+    private final static ObjectReader YAML_READER;
+    private final static ObjectWriter YAML_WRITER;
+    private final static ObjectReader JSON_READER;
+    private final static ObjectWriter JSON_WRITER;
+
     private File input;
     private File inputToUse;
     private LocalisationHelper localisationHelper;
@@ -33,6 +42,17 @@ public class ValidationSpecs {
     private boolean locationAsPointer;
     private boolean addInputToReport;
     private boolean produceAggregateReport;
+    private Boolean isYamlInternal;
+
+    static {
+        // Construct immutable (thread-safe) readers and writers for JSON and YAML.
+        var jsonMapper = new ObjectMapper();
+        JSON_READER = jsonMapper.reader();
+        JSON_WRITER = jsonMapper.writer();
+        var yamlMapper = new YAMLMapper();
+        YAML_READER = yamlMapper.reader();
+        YAML_WRITER = yamlMapper.writer();
+    }
 
     /**
      * Private constructor to prevent direct initialisation.
@@ -56,15 +76,33 @@ public class ValidationSpecs {
                 // No preprocessing needed.
                 inputToUse = prettyPrint(input);
             } else {
-                inputToUse = new File(input.getParent(), UUID.randomUUID() + ".json");
                 // A preprocessing JSONPath expression has been provided for the given validation type.
-                try (InputStream inputStream = new FileInputStream(input)) {
+                File inputToParse;
+                if (isYaml()) {
+                    // First convert the YAML input to JSON.
+                    inputToParse = new File(input.getParent(), UUID.randomUUID() + ".json");
+                    try {
+                        JSON_WRITER.writeValue(inputToParse, YAML_READER.readValue(input));
+                    } catch (Exception e) {
+                        throw new ValidatorException("validator.label.exception.errorInputForPreprocessing", e);
+                    }
+                } else {
+                    inputToParse = input;
+                }
+                inputToUse = new File(inputToParse.getParent(), UUID.randomUUID() + ".json");
+                try (InputStream inputStream = new FileInputStream(inputToParse)) {
                     Object preprocessedJsonObject = JsonPath.parse(inputStream).read(expression);
                     Gson gson = new Gson();
                     try (var writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(inputToUse.getAbsolutePath()), StandardCharsets.UTF_8))) {
                         gson.toJson(preprocessedJsonObject, writer);
                         writer.flush();
-                        inputToUse = prettyPrint(inputToUse);
+                        if (isYaml()) {
+                            // Convert the JSON to YAML.
+                            YAML_WRITER.writeValue(inputToUse, JSON_READER.readValue(inputToUse));
+                        } else {
+                            // Pretty print the JSON.
+                            inputToUse = prettyPrint(inputToUse);
+                        }
                     }
                 } catch (JsonPathException e) {
                     throw new ValidatorException("validator.label.exception.jsonPathError", e, expression);
@@ -142,21 +180,51 @@ public class ValidationSpecs {
      * @return The pretty-printed result.
      */
     private File prettyPrint(File input) {
-        try (FileReader in = new FileReader(input)) {
-            JsonElement json = com.google.gson.JsonParser.parseReader(in);
-            Gson gson = new GsonBuilder()
-                    .setPrettyPrinting()
-                    .serializeNulls()
-                    .create();
-            String jsonOutput = gson.toJson(json);
-            File output = new File(input.getParent(), input.getName() + ".pretty");
-            FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
-            return output;
-        } catch (JsonSyntaxException e) {
-            throw new ValidatorException("validator.label.exception.providedInputNotJSON", e);
-        } catch (IOException e) {
-            throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+        if (isYaml()) {
+            // No need to pretty print YAML
+            return input;
+        } else {
+            try (FileReader in = new FileReader(input)) {
+                JsonElement json = com.google.gson.JsonParser.parseReader(in);
+                Gson gson = new GsonBuilder()
+                        .setPrettyPrinting()
+                        .serializeNulls()
+                        .create();
+                String jsonOutput = gson.toJson(json);
+                File output = new File(input.getParent(), input.getName() + ".pretty");
+                FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
+                return output;
+            } catch (JsonSyntaxException e) {
+                throw new ValidatorException("validator.label.exception.providedInputNotJSON", e);
+            } catch (IOException e) {
+                throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+            }
         }
+    }
+
+    /**
+     * Check to see if the input file should be treated as YAML.
+     *
+     * @return The check result.
+     */
+    public boolean isYaml() {
+        if (isYamlInternal == null) {
+            YamlSupportEnum yamlSupport = domainConfig.getYamlSupportForType(getValidationType());
+            if (yamlSupport == YamlSupportEnum.FORCE) {
+                isYamlInternal = Boolean.TRUE;
+            } else if (yamlSupport == YamlSupportEnum.NONE) {
+                isYamlInternal = Boolean.FALSE;
+            } else {
+                // We could either have YAML or JSON - we'll check the input file's contents.
+                try (var reader = new BufferedReader(new FileReader(input))) {
+                    String firstLine = reader.readLine();
+                    isYamlInternal = firstLine != null && !(firstLine.startsWith("{") || firstLine.startsWith("["));
+                } catch (IOException e) {
+                    throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+                }
+            }
+        }
+        return isYamlInternal;
     }
 
     /**

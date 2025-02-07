@@ -1,11 +1,14 @@
 package eu.europa.ec.itb.json;
 
+import eu.europa.ec.itb.json.validation.YamlSupportEnum;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.TypedValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.config.WebDomainConfig;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -15,6 +18,8 @@ public class DomainConfig extends WebDomainConfig {
 
     private final Set<String> sharedSchemas = new HashSet<>();
     private boolean reportItemCount = false;
+    private Map<String, YamlSupportEnum> yamlSupport = new HashMap<>();
+    private YamlSupportEnum defaultYamlSupport = YamlSupportEnum.NONE;
 
     /**
      * Whether the result report should list the number of parsed items in case an array was provided.
@@ -49,6 +54,28 @@ public class DomainConfig extends WebDomainConfig {
      */
     public ValidationArtifactInfo getSchemaInfo(String validationType) {
         return getArtifactInfo().get(validationType).get();
+    }
+
+    /**
+     * @param yamlSupport Set the map of validation types to YAML support.
+     */
+    public void setYamlSupport(Map<String, YamlSupportEnum> yamlSupport, YamlSupportEnum defaultSupport) {
+        if (yamlSupport != null) {
+            this.yamlSupport = yamlSupport;
+        }
+        if (defaultSupport != null) {
+            this.defaultYamlSupport = defaultSupport;
+        }
+    }
+
+    /**
+     * Check whether the provided (full) validation type support's YAML.
+     *
+     * @param validationType The full validation to check its YAML support.
+     * @return The mapping of full validation type to their level of YAML support (NONE being the default).
+     */
+    public YamlSupportEnum getYamlSupportForType(String validationType) {
+        return yamlSupport.getOrDefault(validationType, defaultYamlSupport);
     }
 
     /**
