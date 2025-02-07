@@ -1,13 +1,15 @@
 package eu.europa.ec.itb.json;
 
+import eu.europa.ec.itb.json.validation.YamlSupportEnum;
 import eu.europa.ec.itb.validation.commons.ValidatorChannel;
+import eu.europa.ec.itb.validation.commons.config.ParseUtils;
 import eu.europa.ec.itb.validation.commons.config.WebDomainConfigCache;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 
 import static eu.europa.ec.itb.validation.commons.config.ParseUtils.addMissingDefaultValues;
@@ -62,6 +64,8 @@ public class DomainConfigCache extends WebDomainConfigCache<DomainConfig> {
         addValidationArtifactInfo("validator.schemaFile", "validator.externalSchemas", "validator.externalSchemaCombinationApproach", domainConfig, config);
         domainConfig.getSharedSchemas().addAll(Arrays.asList(StringUtils.split(StringUtils.defaultIfBlank(config.getString("validator.referencedSchemas"), ""), ',')));
         domainConfig.setReportItemCount(config.getBoolean("validator.reportContentArrayItemCount", false));
+        var defaultYamlSupport = YamlSupportEnum.fromValue(config.getString("validator.yamlSupport", "none"));
+        domainConfig.setYamlSupport(ParseUtils.parseEnumMap("validator.yamlSupport", defaultYamlSupport, config, domainConfig.getType(), YamlSupportEnum::fromValue), defaultYamlSupport);
         addMissingDefaultValues(domainConfig.getWebServiceDescription(), appConfig.getDefaultLabels());
     }
 

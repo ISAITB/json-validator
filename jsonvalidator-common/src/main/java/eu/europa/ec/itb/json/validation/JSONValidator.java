@@ -217,6 +217,7 @@ public class JSONValidator {
         request.getInput().add(Utils.createInputItem("tempFolder", pluginTmpFolder.getAbsolutePath()));
         request.getInput().add(Utils.createInputItem("locale", specs.getLocalisationHelper().getLocale().toString()));
         request.getInput().add(Utils.createInputItem("locationAsPointer", String.valueOf(specs.isLocationAsPointer())));
+        request.getInput().add(Utils.createInputItem("yaml", String.valueOf(specs.isYaml())));
         return request;
     }
 
@@ -371,12 +372,11 @@ public class JSONValidator {
      */
     private JsonNode getContentNode(JsonNodeReader reader) {
         if (contentNode == null) {
+            if (reader == null) {
+                reader = JsonNodeReader.builder().build();
+            }
             try (var input = Files.newInputStream(specs.getInputFileToUse().toPath())) {
-                if (reader != null) {
-                    contentNode = reader.readTree(input, InputFormat.JSON);
-                } else {
-                    contentNode = objectMapper.readTree(input);
-                }
+                contentNode = reader.readTree(input, specs.isYaml()?InputFormat.YAML:InputFormat.JSON);
             } catch (IOException e) {
                 throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
             }
