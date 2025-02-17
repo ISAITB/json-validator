@@ -44,7 +44,7 @@ import java.util.Objects;
 /**
  * REST controller to allow triggering the validator via its REST API.
  */
-@Tag(name = "/{domain}/api", description = "Operations for the validation of JSON content based on JSON schema(s).")
+@Tag(name = "/{domain}/api", description = "Operations for the validation of JSON and YAML content based on JSON schema(s).")
 @RestController
 public class RestValidationController extends BaseRestController<DomainConfig, ApplicationConfig, FileManager, InputHelper> {
 
@@ -61,7 +61,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
      * @param request The HTTP request.
      * @return The result of the validator.
      */
-    @Operation(summary = "Validate a single JSON document.", description="Validate a single JSON document. The content can be provided either within the request as a BASE64 encoded string or remotely as a URL.")
+    @Operation(summary = "Validate a single document.", description="Validate a single document. The content can be provided either within the request as a BASE64 encoded string or remotely as a URL.")
     @ApiResponse(responseCode = "200", description = "Success (for successful validation)", content = { @Content(mediaType = MediaType.APPLICATION_XML_VALUE), @Content(mediaType = MediaType.APPLICATION_JSON_VALUE) })
     @ApiResponse(responseCode = "500", description = "Error (If a problem occurred with processing the request)", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "404", description = "Not found (for an invalid domain value)", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
@@ -74,7 +74,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
                     }
             )
             @PathVariable("domain") String domain,
-            @Parameter(required = true, name = "input", description = "The input for the validation (content and metadata for one JSON document).")
+            @Parameter(required = true, name = "input", description = "The input for the validation (content and metadata for one document).")
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             examples = {
@@ -185,7 +185,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
      * @param request The HTTP request.
      * @return The validation result.
      */
-    @Operation(summary = "Validate multiple JSON documents.", description="Validate multiple JSON documents. The content for each instance can be provided either within the request as a BASE64 encoded string or remotely as a URL.")
+    @Operation(summary = "Validate multiple documents.", description="Validate multiple documents. The content for each instance can be provided either within the request as a BASE64 encoded string or remotely as a URL.")
     @ApiResponse(responseCode = "200", description = "Success (for successful validation)", content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = Output.class))) })
     @ApiResponse(responseCode = "500", description = "Error (If a problem occurred with processing the request)", content = @Content)
     @ApiResponse(responseCode = "404", description = "Not found (for an invalid domain value)", content = @Content)
@@ -198,7 +198,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
                     }
             )
             @PathVariable("domain") String domain,
-            @Parameter(required = true, name = "input", description = "The input for the validation (content and metadata for one or more JSON documents).")
+            @Parameter(required = true, name = "input", description = "The input for the validation (content and metadata for one or more documents).")
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             examples = {
