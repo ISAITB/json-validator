@@ -1,3 +1,7 @@
+![Banner](https://www.itb.ec.europa.eu/files/banners/jsonvalidator_banner.png)
+
+# JSON validator
+
 ![BuildStatus](https://github.com/ISAITB/json-validator/actions/workflows/main.yml/badge.svg)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ISAITB_json-validator&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ISAITB_json-validator)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ISAITB_json-validator&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ISAITB_json-validator)
@@ -7,8 +11,6 @@
 [![licence](https://img.shields.io/github/license/ISAITB/json-validator.svg?color=blue)](https://github.com/ISAITB/json-validator/blob/master/LICENCE.txt)
 [![docs](https://img.shields.io/static/v1?label=docs&message=Test%20Bed%20guides&color=blue)](https://www.itb.ec.europa.eu/docs/guides/latest/validatingJSON/)
 [![docker](https://img.shields.io/docker/pulls/isaitb/json-validator?color=blue&logo=docker&logoColor=white)](https://hub.docker.com/r/isaitb/json-validator)
-
-# JSON validator
 
 The **JSON validator** is a web application to validate JSON and YAML content data against [JSON Schema](https://json-schema.org/) (Core Draft v4, v6, v7, v2019-09 and v2020-12).
 The application provides a fully reusable core that requires only configuration to determine the supported specifications,
