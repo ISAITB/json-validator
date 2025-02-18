@@ -1,4 +1,4 @@
-![Banner](https://www.itb.ec.europa.eu/files/banners/jsonvalidator_banner.png)
+![Banner](https://www.itb.ec.europa.eu/files/banners/itb_banner.png)
 
 # JSON validator
 
