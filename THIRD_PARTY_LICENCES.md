@@ -31,7 +31,7 @@ build. These libraries are used as-is, with no modifications to source code.
 | Apache License, Version 2.0 | json-path | com.jayway.jsonpath:json-path | 2.9.0 | https://github.com/jayway/JsonPath |
 | Apache License, Version 2.0 | MaxMind DB Reader | com.maxmind.db:maxmind-db | 2.0.0 | http://dev.maxmind.com/ |
 | Apache License, Version 2.0 | MaxMind GeoIP2 API | com.maxmind.geoip2:geoip2 | 3.0.1 | https://dev.maxmind.com/geoip?lang=en |
-| Apache License, Version 2.0 | JsonSchemaValidator | com.networknt:json-schema-validator | 1.5.5 | https://github.com/networknt/json-schema-validator |
+| Apache License, Version 2.0 | JsonSchemaValidator | com.networknt:json-schema-validator | 1.5.6 | https://github.com/networknt/json-schema-validator |
 | GNU Lesser General Public License (LGPL), Version 2.1 | Openhtmltopdf Core Renderer | com.openhtmltopdf:openhtmltopdf-core | 1.0.10 | https://github.com/danfickle/openhtmltopdf/openhtmltopdf-core |
 | GNU Lesser General Public License (LGPL), Version 2.1 | Openhtmltopdf PDF Rendering (Apache PDF-BOX 2) | com.openhtmltopdf:openhtmltopdf-pdfbox | 1.0.10 | https://github.com/danfickle/openhtmltopdf/openhtmltopdf-pdfbox |
 | GNU Lesser General Public License (LGPL), Version 2.1 | Openhtmltopdf slf4j Support | com.openhtmltopdf:openhtmltopdf-slf4j | 1.0.10 | https://github.com/danfickle/openhtmltopdf/openhtmltopdf-slf4j |
