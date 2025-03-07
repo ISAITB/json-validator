@@ -10,6 +10,7 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ISAITB_json-validator&metric=bugs)](https://sonarcloud.io/summary/new_code?id=ISAITB_json-validator)
 [![licence](https://img.shields.io/github/license/ISAITB/json-validator.svg?color=blue)](https://github.com/ISAITB/json-validator/blob/master/LICENCE.txt)
 [![docs](https://img.shields.io/static/v1?label=docs&message=Test%20Bed%20guides&color=blue)](https://www.itb.ec.europa.eu/docs/guides/latest/validatingJSON/)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20ITB%20Guru-006BFF?color=blue)](https://gurubase.io/g/itb)
 [![docker](https://img.shields.io/docker/pulls/isaitb/json-validator?color=blue&logo=docker&logoColor=white)](https://hub.docker.com/r/isaitb/json-validator)
 
 The **JSON validator** is a web application to validate JSON and YAML content data against [JSON Schema](https://json-schema.org/) (Core Draft v4, v6, v7, v2019-09 and v2020-12).
