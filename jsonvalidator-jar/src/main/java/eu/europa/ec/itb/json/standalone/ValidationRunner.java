@@ -246,7 +246,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
             parametersMessage
                     .append("\n").append(PAD).append(PAD).append("- SCHEMA_FILE_OR_URI_X is the full file path or URI to a schema for the validation.")
                     .append("\n").append(PAD).append(PAD).append("- SCHEMA_COMBINATION defines how the provided schemas will be combined, one of [")
-                        .append(String.join("|", new String[] {ValidationArtifactCombinationApproach.ALL.getName(), ValidationArtifactCombinationApproach.ANY.getName(), ValidationArtifactCombinationApproach.ONE_OF.getName()}))
+                        .append(String.join("|", ValidationArtifactCombinationApproach.ALL.getName(), ValidationArtifactCombinationApproach.ANY.getName(), ValidationArtifactCombinationApproach.ONE_OF.getName()))
                         .append("] (default is ").append(DEFAULT_COMBINATION_APPROACH.getName()).append(").");
         }
         usageMessage.append("\n").append(PAD).append("Where:");

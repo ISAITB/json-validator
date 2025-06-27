@@ -355,9 +355,9 @@ public class JSONValidator {
 
     private Function<ValidationMessage, String> getLocationMapper() {
         if (specs.isLocationAsPointer()) {
-            return (msg) -> msg.getInstanceLocation().toString();
+            return msg -> msg.getInstanceLocation().toString();
         } else {
-            return (msg) -> {
+            return msg -> {
                 var nodeLocation = JsonNodes.tokenLocationOf(msg.getInstanceNode());
                 int lineNumber = 0;
                 if (nodeLocation != null && nodeLocation.getLineNr() > 0) {
@@ -377,7 +377,7 @@ public class JSONValidator {
     private List<Message> validateAgainstSchema(File schemaFile) {
         var schemaInfo = readSchema(schemaFile.toPath());
         var locationMapper = getLocationMapper();
-        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map((message) -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), locationMapper.apply(message))).collect(Collectors.toList());
+        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(message -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), locationMapper.apply(message))).toList();
     }
 
     /**
