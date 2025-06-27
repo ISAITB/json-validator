@@ -42,10 +42,10 @@ import java.util.UUID;
  */
 public class ValidationSpecs {
 
-    private final static ObjectReader YAML_READER;
-    private final static ObjectWriter YAML_WRITER;
-    private final static ObjectReader JSON_READER;
-    private final static ObjectWriter JSON_WRITER;
+    private static final ObjectReader YAML_READER;
+    private static final ObjectWriter YAML_WRITER;
+    private static final ObjectReader JSON_READER;
+    private static final ObjectWriter JSON_WRITER;
 
     private File input;
     private File inputToUse;
