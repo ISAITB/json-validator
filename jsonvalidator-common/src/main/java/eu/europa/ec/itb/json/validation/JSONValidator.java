@@ -35,7 +35,7 @@ import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.plugin.PluginManager;
 import eu.europa.ec.itb.validation.plugin.ValidationPlugin;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -376,7 +376,7 @@ public class JSONValidator {
     private List<Message> validateAgainstSchema(File schemaFile) {
         var schemaInfo = readSchema(schemaFile.toPath());
         var locationMapper = getLocationMapper();
-        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(message -> new Message(StringUtils.removeStart(message.getMessage(), "[] "), locationMapper.apply(message))).toList();
+        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(message -> new Message(Strings.CS.removeStart(message.getMessage(), "[] "), locationMapper.apply(message))).toList();
     }
 
     /**

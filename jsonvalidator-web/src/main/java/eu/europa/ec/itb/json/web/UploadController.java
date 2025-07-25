@@ -18,6 +18,7 @@ package eu.europa.ec.itb.json.web;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.DomainConfigCache;
+import eu.europa.ec.itb.json.InputHelper;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationSpecs;
@@ -69,6 +70,8 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
 
     @Autowired
     private FileManager fileManager = null;
+    @Autowired
+    private InputHelper inputHelper = null;
     @Autowired
     private BeanFactory beans = null;
     @Autowired
@@ -172,9 +175,10 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
         var localisationHelper = new LocalisationHelper(config, localeResolver.resolveLocale(request, response, config, appConfig));
         var result = new UploadResult<>();
 
-        if (StringUtils.isBlank(validationType)) {
-            validationType = config.getType().get(0);
+        if (!isOwnSubmission(request)) {
+            validationType = inputHelper.determineValidationType(validationType, domain, config);
         }
+        validationType = inputHelper.validateValidationType(config, validationType);
         if (config.hasMultipleValidationTypes() && (validationType == null || !config.getType().contains(validationType))) {
             // A validation type is required.
             result.setMessage(localisationHelper.localise("validator.label.exception.providedValidationTypeNotValid"));

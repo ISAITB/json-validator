@@ -19,14 +19,14 @@ import com.google.gson.JsonParser;
 import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.DomainConfigCache;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -139,7 +139,7 @@ public class LocalSchemaCache {
      * @return The key to use.
      */
     private String schemaKey(DomainConfig domainConfig, String id) {
-        return StringUtils.appendIfMissing(String.format("com.gitb.domain.%s|%s", domainConfig.getDomain(), id), "#");
+        return Strings.CS.appendIfMissing(String.format("com.gitb.domain.%s|%s", domainConfig.getDomain(), id), "#");
     }
 
     /**
