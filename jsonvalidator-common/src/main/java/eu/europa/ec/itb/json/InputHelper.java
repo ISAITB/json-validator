@@ -19,7 +19,7 @@ import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.validation.commons.BaseInputHelper;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
-import org.apache.tika.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
