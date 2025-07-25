@@ -19,6 +19,7 @@ import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.DomainConfigCache;
 import eu.europa.ec.itb.validation.commons.ValidatorChannel;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;
@@ -29,7 +30,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 /**
@@ -72,7 +72,8 @@ public class ValidationServiceConfig {
     public void publishValidationServices() {
     	for (DomainConfig domainConfig: domainConfigCache.getAllDomainConfigurations()) {
             if (domainConfig.getChannels().contains(ValidatorChannel.SOAP_API)) {
-                EndpointImpl endpoint = new EndpointImpl(cxfBus, applicationContext.getBean(ValidationServiceImpl.class, domainConfig));
+                DomainConfig resolvedDomainConfig = domainConfigCache.getConfigForDomainName(domainConfig.getDomainName());
+                EndpointImpl endpoint = new EndpointImpl(cxfBus, applicationContext.getBean(ValidationServiceImpl.class, resolvedDomainConfig, domainConfig));
                 endpoint.setEndpointName(new QName("http://www.gitb.com/vs/v1/", "ValidationServicePort"));
                 endpoint.setServiceName(new QName("http://www.gitb.com/vs/v1/", "ValidationService"));
                 if (StringUtils.isNotBlank(config.getBaseSoapEndpointUrl())) {

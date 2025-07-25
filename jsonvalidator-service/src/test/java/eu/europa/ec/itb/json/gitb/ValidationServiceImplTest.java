@@ -37,7 +37,7 @@ class ValidationServiceImplTest {
                 ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, "Description of INPUT_ADD_INPUT_TO_REPORT",
                 ValidationConstants.INPUT_LOCALE, "Description of INPUT_LOCALE"
         )).when(domainConfig).getWebServiceDescription();
-        var service = new ValidationServiceImpl(domainConfig);
+        var service = new ValidationServiceImpl(domainConfig, domainConfig);
         var result = service.getModuleDefinition(new Void());
         assertNotNull(result);
         assertNotNull(result.getModule());

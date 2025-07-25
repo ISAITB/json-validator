@@ -57,6 +57,7 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
 
     private static final Logger logger = LoggerFactory.getLogger(ValidationServiceImpl.class);
     private final DomainConfig domainConfig;
+    private final DomainConfig requestedDomainConfig;
 
     @Autowired
     private ApplicationContext ctx = null;
@@ -71,9 +72,11 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
      * Constructor.
      *
      * @param domainConfig The domain configuration (each domain has its own instance).
+     * @param requestedDomainConfig The resolved domain configuration (in case of aliases).
      */
-    public ValidationServiceImpl(DomainConfig domainConfig) {
+    public ValidationServiceImpl(DomainConfig domainConfig, DomainConfig requestedDomainConfig) {
         this.domainConfig = domainConfig;
+        this.requestedDomainConfig = requestedDomainConfig;
     }
     
     /**
@@ -142,7 +145,7 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
 			boolean locationAsPointer = getInputAsBoolean(validateRequest, ValidationConstants.INPUT_LOCATION_AS_POINTER, false);
             boolean addInputToReport = getInputAsBoolean(validateRequest, ValidationConstants.INPUT_ADD_INPUT_TO_REPORT, true);
             File contentToValidate = inputHelper.validateContentToValidate(validateRequest, ValidationConstants.INPUT_CONTENT, contentEmbeddingMethod, null, tempFolderPath, domainConfig.getHttpVersion()).getFile();
-            String validationType = inputHelper.validateValidationType(domainConfig, validateRequest, ValidationConstants.INPUT_VALIDATION_TYPE);
+            String validationType = inputHelper.validateValidationType(requestedDomainConfig.getDomainName(), domainConfig, validateRequest, ValidationConstants.INPUT_VALIDATION_TYPE);
             List<FileInfo> externalSchemas = inputHelper.validateExternalArtifacts(domainConfig, validateRequest, ValidationConstants.INPUT_EXTERNAL_SCHEMAS, ValidationConstants.INPUT_EXTERNAL_SCHEMAS_SCHEMA, ValidationConstants.INPUT_EMBEDDING_METHOD, validationType, null, tempFolderPath);
             ValidationArtifactCombinationApproach externalSchemaCombinationApproach = validateExternalSchemaCombinationApproach(validateRequest, validationType);
             ValidationResponse result = new ValidationResponse();
