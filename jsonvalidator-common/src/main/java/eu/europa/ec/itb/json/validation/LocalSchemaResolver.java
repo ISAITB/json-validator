@@ -20,7 +20,7 @@ import com.networknt.schema.resource.InputStreamSource;
 import com.networknt.schema.resource.SchemaLoader;
 import com.networknt.schema.resource.UriSchemaLoader;
 import eu.europa.ec.itb.json.DomainConfig;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class LocalSchemaResolver implements SchemaLoader {
      */
     @Override
     public InputStreamSource getSchema(AbsoluteIri absoluteIri) {
-        String idToCheck = StringUtils.appendIfMissing(absoluteIri.toString(), "#");
+        String idToCheck = Strings.CS.appendIfMissing(absoluteIri.toString(), "#");
         var schema = localSchemaCache.getSchemaForId(domain, idToCheck);
         if (schema.isEmpty()) {
             LOG.debug("Schema with URI {} not found locally. Looking up remotely.", absoluteIri);

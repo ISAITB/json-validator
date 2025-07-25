@@ -128,7 +128,7 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
 
     /**
      * The validate operation is called to validate the input and produce a validation report.
-     *
+     * <p>
      * The expected input is described for the service's client through the getModuleDefinition call.
      *
      * @param validateRequest The input parameters and configuration for the validation.

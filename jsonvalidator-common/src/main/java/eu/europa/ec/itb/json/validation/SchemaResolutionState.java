@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * Class to record the thread-specific state when resolving a given schema.
- *
+ * <p>
  * This state is used for two reasons:
  * - To pass the domain in question.
  * - To ensure that we don't end up with cyclic dependencies that could lead to infinite lookups.
