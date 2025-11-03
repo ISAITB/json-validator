@@ -24,8 +24,12 @@ import com.gitb.tr.*;
 import com.gitb.vs.ValidateRequest;
 import com.gitb.vs.ValidationResponse;
 import com.networknt.schema.*;
+import com.networknt.schema.Error;
+import com.networknt.schema.dialect.Dialects;
 import com.networknt.schema.i18n.ResourceBundleMessageSource;
-import com.networknt.schema.serialization.JsonNodeReader;
+import com.networknt.schema.path.PathType;
+import com.networknt.schema.serialization.DefaultNodeReader;
+import com.networknt.schema.serialization.NodeReader;
 import com.networknt.schema.utils.JsonNodes;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.*;
@@ -35,7 +39,7 @@ import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import eu.europa.ec.itb.validation.plugin.PluginManager;
 import eu.europa.ec.itb.validation.plugin.ValidationPlugin;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -311,29 +315,24 @@ public class JSONValidator {
      * @param path The schema path.
      * @return The parsed schema and JSON node reader to use.
      */
-    private Pair<JsonSchema, JsonNodeReader> readSchema(Path path) {
+    private Pair<Schema, NodeReader> readSchema(Path path) {
         try {
             var jsonNode = objectMapper.readTree(path.toFile());
-            var jsonSchemaVersion = JsonSchemaFactory.checkVersion(SpecVersionDetector.detect(jsonNode));
-            var metaSchema = jsonSchemaVersion.getInstance();
-            /*
-             * The schema factory is created per validation. This is done to avoid caching of schemas across validations that
-             * may be remotely loaded or schemas that are user-provided. In addition, it allows us to treat schemas that
-             * may use different specification versions.
-             */
             var jsonReader = getJsonReader();
-            var schemaFactory = JsonSchemaFactory.builder()
-                    .schemaLoaders(schemaLoaders -> schemaLoaders.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache)))
-                    .metaSchema(metaSchema)
-                    .defaultMetaSchemaIri(metaSchema.getIri())
-                    .jsonNodeReader(jsonReader)
-                    .build();
-            var schemaConfig = SchemaValidatorsConfig.builder()
+            var registryConfig = SchemaRegistryConfig.builder()
+                    .cacheRefs(false)
                     .pathType(PathType.JSON_POINTER)
                     .locale(specs.getLocalisationHelper().getLocale())
                     .messageSource(new ResourceBundleMessageSource("i18n/jsv-messages"))
                     .build();
-            return Pair.of(schemaFactory.getSchema(jsonNode, schemaConfig), jsonReader);
+            var registry = SchemaRegistry.builder()
+                    .defaultDialectId(Dialects.getDraft202012().getId())
+                    .schemaRegistryConfig(registryConfig)
+                    .schemaCacheEnabled(false)
+                    .nodeReader(jsonReader)
+                    .resourceLoaders(builder -> builder.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache)))
+                    .build();
+            return Pair.of(registry.getSchema(jsonNode), jsonReader);
         } catch (IOException e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }
@@ -344,20 +343,20 @@ public class JSONValidator {
      *
      * @return The reader.
      */
-    private JsonNodeReader getJsonReader() {
-        var jsonReaderBuilder = JsonNodeReader.builder();
+    private NodeReader getJsonReader() {
+        var jsonReaderBuilder = DefaultNodeReader.builder();
         if (!specs.isLocationAsPointer()) {
             jsonReaderBuilder = jsonReaderBuilder.locationAware();
         }
         return jsonReaderBuilder.build();
     }
 
-    private Function<ValidationMessage, String> getLocationMapper() {
+    private Function<Error, String> getLocationMapper() {
         if (specs.isLocationAsPointer()) {
             return msg -> msg.getInstanceLocation().toString();
         } else {
             return msg -> {
-                var nodeLocation = JsonNodes.tokenLocationOf(msg.getInstanceNode());
+                var nodeLocation = JsonNodes.tokenStreamLocationOf(msg.getInstanceNode());
                 int lineNumber = 0;
                 if (nodeLocation != null && nodeLocation.getLineNr() > 0) {
                     lineNumber = nodeLocation.getLineNr();
@@ -376,7 +375,19 @@ public class JSONValidator {
     private List<Message> validateAgainstSchema(File schemaFile) {
         var schemaInfo = readSchema(schemaFile.toPath());
         var locationMapper = getLocationMapper();
-        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(message -> new Message(Strings.CS.removeStart(message.getMessage(), "[] "), locationMapper.apply(message))).toList();
+        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(error -> {
+            String pathPrefix = null;
+            if (error.getInstanceLocation() != null) {
+                pathPrefix = error.getInstanceLocation().toString();
+            } else if (error.getSchemaLocation() != null) {
+                pathPrefix = error.getSchemaLocation().toString();
+            }
+            if (StringUtils.isNotEmpty(pathPrefix)) {
+                return new Message("["+pathPrefix+"] "+error.getMessage(), locationMapper.apply(error));
+            } else {
+                return new Message(error.getMessage(), locationMapper.apply(error));
+            }
+        }).toList();
     }
 
     /**
@@ -384,10 +395,10 @@ public class JSONValidator {
      *
      * @return The JSON node.
      */
-    private JsonNode getContentNode(JsonNodeReader reader) {
+    private JsonNode getContentNode(NodeReader reader) {
         if (contentNode == null) {
             if (reader == null) {
-                reader = JsonNodeReader.builder().build();
+                reader = DefaultNodeReader.builder().build();
             }
             try (var input = Files.newInputStream(specs.getInputFileToUse().toPath())) {
                 contentNode = reader.readTree(input, specs.isYaml()?InputFormat.YAML:InputFormat.JSON);
