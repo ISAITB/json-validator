@@ -17,8 +17,8 @@ package eu.europa.ec.itb.json.validation;
 
 import com.networknt.schema.AbsoluteIri;
 import com.networknt.schema.resource.InputStreamSource;
-import com.networknt.schema.resource.SchemaLoader;
-import com.networknt.schema.resource.UriSchemaLoader;
+import com.networknt.schema.resource.IriResourceLoader;
+import com.networknt.schema.resource.ResourceLoader;
 import eu.europa.ec.itb.json.DomainConfig;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
@@ -29,11 +29,10 @@ import java.nio.file.Files;
 /**
  * Custom schema resolver that loads schemas defined as local references.
  */
-public class LocalSchemaResolver implements SchemaLoader {
+public class LocalSchemaResolver implements ResourceLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(LocalSchemaResolver.class);
 
-    private final UriSchemaLoader uriSchemaLoader = new UriSchemaLoader();
     private final DomainConfig domain;
     private final LocalSchemaCache localSchemaCache;
 
@@ -55,15 +54,16 @@ public class LocalSchemaResolver implements SchemaLoader {
      * @return The resolved schema or null if none could be resolved from the configured shared schema references.
      */
     @Override
-    public InputStreamSource getSchema(AbsoluteIri absoluteIri) {
+    public InputStreamSource getResource(AbsoluteIri absoluteIri) {
         String idToCheck = Strings.CS.appendIfMissing(absoluteIri.toString(), "#");
         var schema = localSchemaCache.getSchemaForId(domain, idToCheck);
         if (schema.isEmpty()) {
             LOG.debug("Schema with URI {} not found locally. Looking up remotely.", absoluteIri);
-            return uriSchemaLoader.getSchema(absoluteIri);
+            return IriResourceLoader.getInstance().getResource(absoluteIri);
         } else {
             LOG.debug("Schema with URI {} found locally.", absoluteIri);
             return () -> Files.newInputStream(schema.get());
         }
     }
+
 }
