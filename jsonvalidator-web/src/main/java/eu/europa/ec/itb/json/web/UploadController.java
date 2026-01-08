@@ -24,6 +24,8 @@ import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationSpecs;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.LocalisationHelper;
+import eu.europa.ec.itb.validation.commons.RateLimitPolicy;
+import eu.europa.ec.itb.validation.commons.RateLimited;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.TypedValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
@@ -33,6 +35,8 @@ import eu.europa.ec.itb.validation.commons.web.BaseUploadController;
 import eu.europa.ec.itb.validation.commons.web.CSPNonceFilter;
 import eu.europa.ec.itb.validation.commons.web.Constants;
 import eu.europa.ec.itb.validation.commons.web.locale.CustomLocaleResolver;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -49,8 +53,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -156,6 +158,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      */
     @PostMapping(value = "/{domain}/upload", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @RateLimited(policy = RateLimitPolicy.UI_VALIDATE)
     public UploadResult<Translations> handleUpload(@PathVariable("domain") String domain,
                                                    @RequestParam(value = "file", required = false) MultipartFile file,
                                                    @RequestParam(value = "uri", defaultValue = "") String uri,
@@ -273,6 +276,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      */
     @PostMapping(value = "/{domain}/uploadm", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
+    @RateLimited(policy = RateLimitPolicy.UI_VALIDATE)
     public UploadResult<Translations> handleUploadMinimal(@PathVariable("domain") String domain,
                                                     @RequestParam(value = "file", required = false) MultipartFile file,
                                                     @RequestParam(value = "uri", defaultValue = "") String uri,
@@ -296,6 +300,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @see UploadController#handleUpload(String, MultipartFile, String, String, String, String, String[], MultipartFile[], String[], String[], String, RedirectAttributes, HttpServletRequest, HttpServletResponse)
      */
     @PostMapping(value = "/{domain}/upload", produces = MediaType.TEXT_HTML_VALUE)
+    @RateLimited(policy = RateLimitPolicy.UI_VALIDATE)
     public ModelAndView handleUploadEmbedded(@PathVariable("domain") String domain,
                                              @RequestParam(value = "file", required = false) MultipartFile file,
                                              @RequestParam(value = "uri", defaultValue = "") String uri,
@@ -322,6 +327,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @see UploadController#handleUpload(String, MultipartFile, String, String, String, String, String[], MultipartFile[], String[], String[], String, RedirectAttributes, HttpServletRequest, HttpServletResponse)
      */
     @PostMapping(value = "/{domain}/uploadm", produces = MediaType.TEXT_HTML_VALUE)
+    @RateLimited(policy = RateLimitPolicy.UI_VALIDATE)
     public ModelAndView handleUploadMinimalEmbedded(@PathVariable("domain") String domain,
                                                     @RequestParam(value = "file", required = false) MultipartFile file,
                                                     @RequestParam(value = "uri", defaultValue = "") String uri,
