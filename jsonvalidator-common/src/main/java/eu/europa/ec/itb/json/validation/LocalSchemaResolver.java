@@ -17,13 +17,16 @@ package eu.europa.ec.itb.json.validation;
 
 import com.networknt.schema.AbsoluteIri;
 import com.networknt.schema.resource.InputStreamSource;
-import com.networknt.schema.resource.IriResourceLoader;
 import com.networknt.schema.resource.ResourceLoader;
+import com.networknt.schema.utils.AbsoluteIris;
 import eu.europa.ec.itb.json.DomainConfig;
+import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.URLReader;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.nio.file.Files;
 
 /**
@@ -35,16 +38,20 @@ public class LocalSchemaResolver implements ResourceLoader {
 
     private final DomainConfig domain;
     private final LocalSchemaCache localSchemaCache;
+    private final FileInfo schemaInfo;
+    private URLReader urlReader;
 
     /**
      * Constructor.
      *
      * @param domain The configuration domain.
      * @param localSchemaCache The cache of locally-defined schemas.
+     * @param schemaInfo The schema information.
      */
-    public LocalSchemaResolver(DomainConfig domain, LocalSchemaCache localSchemaCache) {
+    public LocalSchemaResolver(DomainConfig domain, LocalSchemaCache localSchemaCache, FileInfo schemaInfo) {
         this.domain = domain;
         this.localSchemaCache = localSchemaCache;
+        this.schemaInfo = schemaInfo;
     }
 
     /**
@@ -59,11 +66,23 @@ public class LocalSchemaResolver implements ResourceLoader {
         var schema = localSchemaCache.getSchemaForId(domain, idToCheck);
         if (schema.isEmpty()) {
             LOG.debug("Schema with URI {} not found locally. Looking up remotely.", absoluteIri);
-            return IriResourceLoader.getInstance().getResource(absoluteIri);
+            return () -> getUrlReader().stream(URI.create(AbsoluteIris.toUri(absoluteIri)), null, domain.getHttpVersion(), schemaInfo.getRequestDecorator()).stream();
         } else {
             LOG.debug("Schema with URI {} found locally.", absoluteIri);
             return () -> Files.newInputStream(schema.get());
         }
+    }
+
+    /**
+     * Get the URL reader to use.
+     *
+     * @return The reader.
+     */
+    private URLReader getUrlReader() {
+        if (urlReader == null) {
+            urlReader = new URLReader();
+        }
+        return urlReader;
     }
 
 }

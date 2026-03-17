@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -251,14 +250,14 @@ public class JSONValidator {
         if (combinationApproach == ValidationArtifactCombinationApproach.ALL) {
             // All schema validations must result in success.
             for (FileInfo fileInfo: schemaFileInfos) {
-                aggregatedMessages.addAll(validateAgainstSchema(fileInfo.getFile()));
+                aggregatedMessages.addAll(validateAgainstSchema(fileInfo));
             }
         } else if (combinationApproach == ValidationArtifactCombinationApproach.ONE_OF) {
             // All schemas need to be validated but only one should validate successfully.
             int successCount = 0;
             int branchCounter = 1;
             for (FileInfo fileInfo: schemaFileInfos) {
-                var latestErrors = validateAgainstSchema(fileInfo.getFile());
+                var latestErrors = validateAgainstSchema(fileInfo);
                 if (latestErrors.isEmpty()) {
                     successCount += 1;
                 } else {
@@ -277,7 +276,7 @@ public class JSONValidator {
             // Any of the schemas should validate successfully.
             int branchCounter = 1;
             for (FileInfo fileInfo: schemaFileInfos) {
-                List<Message> latestErrors = validateAgainstSchema(fileInfo.getFile());
+                List<Message> latestErrors = validateAgainstSchema(fileInfo);
                 if (latestErrors.isEmpty()) {
                     aggregatedMessages.clear();
                     break;
@@ -312,12 +311,12 @@ public class JSONValidator {
      * The schema loading in this case extends what the official spec foresees, allowing to read definitions
      * from local files (and reuse schemas).
      *
-     * @param path The schema path.
+     * @param schemaInfo The schema information.
      * @return The parsed schema and JSON node reader to use.
      */
-    private Pair<Schema, NodeReader> readSchema(Path path) {
+    private Pair<Schema, NodeReader> readSchema(FileInfo schemaInfo) {
         try {
-            var jsonNode = objectMapper.readTree(path.toFile());
+            var jsonNode = objectMapper.readTree(schemaInfo.getFile());
             var jsonReader = getJsonReader();
             var registryConfig = SchemaRegistryConfig.builder()
                     .cacheRefs(false)
@@ -330,7 +329,7 @@ public class JSONValidator {
                     .schemaRegistryConfig(registryConfig)
                     .schemaCacheEnabled(false)
                     .nodeReader(jsonReader)
-                    .resourceLoaders(builder -> builder.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache)))
+                    .resourceLoaders(builder -> builder.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache, schemaInfo)))
                     .build();
             return Pair.of(registry.getSchema(jsonNode), jsonReader);
         } catch (IOException e) {
@@ -372,8 +371,8 @@ public class JSONValidator {
      * @param schemaFile The schema file to use.
      * @return The resulting error messages.
      */
-    private List<Message> validateAgainstSchema(File schemaFile) {
-        var schemaInfo = readSchema(schemaFile.toPath());
+    private List<Message> validateAgainstSchema(FileInfo schemaFile) {
+        var schemaInfo = readSchema(schemaFile);
         var locationMapper = getLocationMapper();
         return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(error -> {
             String pathPrefix = null;
