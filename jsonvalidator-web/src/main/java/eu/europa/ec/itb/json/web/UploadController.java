@@ -58,7 +58,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static eu.europa.ec.itb.validation.commons.web.Constants.*;
 
@@ -213,7 +215,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                     List<FileInfo> externalSchemas = new ArrayList<>();
                     boolean proceedToValidate = true;
                     try {
-                        externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, externalSchemaString, config.getSchemaInfo(validationType), tempFolderForRequest, config.getHttpVersion());
+                        externalSchemas = getExternalFiles(externalSchemaContentType, externalSchemaFiles, externalSchemaUri, externalSchemaString, config.getSchemaInfo(validationType), tempFolderForRequest, config.getHttpVersion(), config);
                     } catch (IOException e) {
                         logger.error("Error while reading uploaded file [{}]", e.getMessage(), e);
                         result.setMessage(localisationHelper.localise("validator.label.exception.errorInUpload", e.getMessage()));
@@ -374,13 +376,15 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @param schemaInfo The schema information from the domain.
      * @param parentFolder The temporary folder to use for file system storage.
      * @param httpVersion The HTTP version to use.
+     * @param domainConfig The domain configuration.
      * @return The list of user-provided artifacts.
      * @throws IOException If an IO error occurs.
      */
     private List<FileInfo> getExternalFiles(String[] externalContentType, MultipartFile[] externalFiles, String[] externalUri, String[] externalString,
-                                            ValidationArtifactInfo schemaInfo, File parentFolder, HttpClient.Version httpVersion) throws IOException {
+                                            ValidationArtifactInfo schemaInfo, File parentFolder, HttpClient.Version httpVersion, DomainConfig domainConfig) throws IOException {
         List<FileInfo> lis = new ArrayList<>();
         if (externalContentType != null) {
+            Consumer<HttpRequest.Builder> requestDecorator = fileManager.createRemoteFileRequestDecorator(domainConfig, schemaInfo);
             for (int i=0; i<externalContentType.length; i++) {
                 if (StringUtils.isNotBlank(externalContentType[i])) {
                     File inputFile;
@@ -396,10 +400,9 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                     if (externalString != null && externalString.length > i) {
                         currentExtString = externalString[i];
                     }
-
-                    inputFile = getInputFile(externalContentType[i], currentExtFile, currentExtUri, currentExtString, parentFolder, httpVersion);
+                    inputFile = getInputFile(externalContentType[i], currentExtFile, currentExtUri, currentExtString, parentFolder, httpVersion, requestDecorator);
                     if (inputFile != null) {
-                        lis.add(new FileInfo(inputFile));
+                        lis.add(new FileInfo(inputFile, null, null, requestDecorator));
                     }
                 }
             }
@@ -452,10 +455,11 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
      * @param inputString The provided direct input string to load the content from.
      * @param parentFolder The temporary folder to use.
      * @param httpVersion The HTTP version to use.
+     * @param requestDecorator The request decorator to use.
      * @return The input content's file.
      * @throws IOException If an error occurs.
      */
-    private File getInputFile(String contentType, MultipartFile inputFile, String inputUri, String inputString, File parentFolder, HttpClient.Version httpVersion) throws IOException {
+    private File getInputFile(String contentType, MultipartFile inputFile, String inputUri, String inputString, File parentFolder, HttpClient.Version httpVersion, Consumer<HttpRequest.Builder> requestDecorator) throws IOException {
         File file = null;
         if (CONTENT_TYPE_FILE.equals(contentType)) {
             if (inputFile!=null && !inputFile.isEmpty()) {
@@ -465,7 +469,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
             }
         } else if (CONTENT_TYPE_URI.equals(contentType)) {
             if (StringUtils.isNotBlank(inputUri)) {
-                file = this.fileManager.getFileFromURL(parentFolder, inputUri, httpVersion);
+                file = this.fileManager.getFileFromURL(parentFolder, inputUri, null, null, null, null, null, null, httpVersion, requestDecorator).getFile();
             }
         } else if (CONTENT_TYPE_STRING.equals(contentType)) {
             if (StringUtils.isNotBlank(inputString)) {
