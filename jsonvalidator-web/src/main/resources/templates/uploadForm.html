@@ -23,7 +23,8 @@
                 externalArtifacts: externalArtifacts,
                 labels: [(${labelConfig})],
                 reportTemplate: 'reportJson.hbs',
-                reportMinimalTemplate: 'reportMinimalJson.hbs'
+                reportMinimalTemplate: 'reportMinimalJson.hbs',
+                allowUriInputs: [[${appConfig.allowUriInputs}]]
             });
         </script>
         <script th:attr="nonce=${nonce}" th:inline="javascript" th:if="${reportData}">
