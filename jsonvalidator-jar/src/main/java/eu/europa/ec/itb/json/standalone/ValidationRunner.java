@@ -15,6 +15,7 @@
 
 package eu.europa.ec.itb.json.standalone;
 
+import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.InputHelper;
 import eu.europa.ec.itb.json.validation.FileManager;
@@ -45,6 +46,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Component that handles the actual triggering of validation and resulting reporting.
@@ -63,6 +65,8 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
 
     @Autowired
     private ApplicationContext ctx;
+    @Autowired
+    private ApplicationConfig appConfig;
     @Autowired
     private FileManager fileManager;
     @Autowired
@@ -204,13 +208,15 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
      * @throws IOException If an IO error occurs.
      */
     private File getContent(String contentPath, File parentFolder, HttpClient.Version httpVersion) throws IOException {
-        File fileToUse;
+        File fileToUse = null;
         if (isValidURL(contentPath)) {
             // Value is a URL.
-            try {
-                fileToUse = fileManager.getFileFromURL(parentFolder, contentPath, httpVersion);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Unable to read file from URL ["+contentPath+"]");
+            if (appConfig.isUriReadAllowed(contentPath)) {
+                try {
+                    fileToUse = fileManager.getFileFromURL(parentFolder, contentPath, httpVersion);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("Unable to read file from URL ["+contentPath+"]");
+                }
             }
         } else {
             // Value is a local file. Copy this in the tmp folder as we may later be changing it (e.g. encoding updates).
@@ -222,7 +228,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
             Files.createDirectories(finalInputFile.getParent());
             fileToUse = Files.copy(inputFile, finalInputFile).toFile();
         }
-        return fileToUse;
+        return Objects.requireNonNull(fileToUse);
     }
 
     /**
