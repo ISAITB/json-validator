@@ -31,6 +31,7 @@ import com.networknt.schema.path.PathType;
 import com.networknt.schema.serialization.DefaultNodeReader;
 import com.networknt.schema.serialization.NodeReader;
 import com.networknt.schema.utils.JsonNodes;
+import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.*;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
@@ -68,6 +69,8 @@ public class JSONValidator {
     public static final String ITEM_COUNT = "itemCount";
     private static final Logger LOG = LoggerFactory.getLogger(JSONValidator.class);
 
+    @Autowired
+    private ApplicationConfig appConfig = null;
     @Autowired
     private FileManager fileManager = null;
     @Autowired
@@ -329,7 +332,10 @@ public class JSONValidator {
                     .schemaRegistryConfig(registryConfig)
                     .schemaCacheEnabled(false)
                     .nodeReader(jsonReader)
-                    .resourceLoaders(builder -> builder.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache, schemaInfo)))
+                    .resourceLoaders(builder -> builder.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache, schemaInfo,
+                            ImportedUriAuthorizer.from(appConfig, specs.getDomainConfig(), specs.getValidationType()).orElse(null),
+                            ImportedFileAuthorizer.from(appConfig, specs.getDomainConfig())
+                    )))
                     .build();
             return Pair.of(registry.getSchema(jsonNode), jsonReader);
         } catch (IOException e) {
