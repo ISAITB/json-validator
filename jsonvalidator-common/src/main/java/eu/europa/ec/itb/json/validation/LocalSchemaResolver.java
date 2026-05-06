@@ -21,6 +21,8 @@ import com.networknt.schema.resource.ResourceLoader;
 import com.networknt.schema.utils.AbsoluteIris;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.FileInfo;
+import eu.europa.ec.itb.validation.commons.ImportedFileAuthorizer;
+import eu.europa.ec.itb.validation.commons.ImportedUriAuthorizer;
 import eu.europa.ec.itb.validation.commons.URLReader;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
@@ -39,6 +41,8 @@ public class LocalSchemaResolver implements ResourceLoader {
     private final DomainConfig domain;
     private final LocalSchemaCache localSchemaCache;
     private final FileInfo schemaInfo;
+    private final ImportedUriAuthorizer importAuthorizer;
+    private final ImportedFileAuthorizer importFileAuthorizer;
     private URLReader urlReader;
 
     /**
@@ -47,11 +51,15 @@ public class LocalSchemaResolver implements ResourceLoader {
      * @param domain The configuration domain.
      * @param localSchemaCache The cache of locally-defined schemas.
      * @param schemaInfo The schema information.
+     * @param importAuthorizer The authorizer for imported schema URIs.
+     * @param importFileAuthorizer The authorizer for imported schema files.
      */
-    public LocalSchemaResolver(DomainConfig domain, LocalSchemaCache localSchemaCache, FileInfo schemaInfo) {
+    public LocalSchemaResolver(DomainConfig domain, LocalSchemaCache localSchemaCache, FileInfo schemaInfo, ImportedUriAuthorizer importAuthorizer, ImportedFileAuthorizer importFileAuthorizer) {
         this.domain = domain;
         this.localSchemaCache = localSchemaCache;
         this.schemaInfo = schemaInfo;
+        this.importAuthorizer = importAuthorizer;
+        this.importFileAuthorizer = importFileAuthorizer;
     }
 
     /**
@@ -66,9 +74,12 @@ public class LocalSchemaResolver implements ResourceLoader {
         var schema = localSchemaCache.getSchemaForId(domain, idToCheck);
         if (schema.isEmpty()) {
             LOG.debug("Schema with URI {} not found locally. Looking up remotely.", absoluteIri);
-            return () -> getUrlReader().stream(URI.create(AbsoluteIris.toUri(absoluteIri)), null, domain.getHttpVersion(), schemaInfo.getRequestDecorator()).stream();
+            URI uriToResolve = URI.create(AbsoluteIris.toUri(absoluteIri));
+            if (importAuthorizer != null) importAuthorizer.isUriAllowed(uriToResolve);
+            return () -> getUrlReader().stream(uriToResolve, null, domain.getHttpVersion(), schemaInfo.getRequestDecorator()).stream();
         } else {
             LOG.debug("Schema with URI {} found locally.", absoluteIri);
+            if (importFileAuthorizer != null) importFileAuthorizer.isPathAllowed(schema.get());
             return () -> Files.newInputStream(schema.get());
         }
     }
