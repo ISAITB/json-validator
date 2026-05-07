@@ -7,10 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: main
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: ISAITB/itb-commons
           path: commons
@@ -27,7 +27,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-${{ secrets.CACHE_VERSION }}|
       - name: Generate Maven settings
-        uses: whelk-io/maven-settings-xml-action@v22
+        # Version 22
+        uses: whelk-io/maven-settings-xml-action@9dc09b23833fa9aa7f27b63db287951856f3433d
         with:
           repositories: >
             [
