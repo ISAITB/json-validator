@@ -15,9 +15,6 @@
 
 package eu.europa.ec.itb.json.validation;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.gitb.core.AnyContent;
 import com.gitb.core.ValueEmbeddingEnumeration;
 import com.gitb.tr.*;
@@ -47,6 +44,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -338,7 +338,7 @@ public class JSONValidator {
                     )))
                     .build();
             return Pair.of(registry.getSchema(jsonNode), jsonReader);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }
     }
