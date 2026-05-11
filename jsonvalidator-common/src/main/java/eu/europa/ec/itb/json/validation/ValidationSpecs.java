@@ -15,10 +15,6 @@
 
 package eu.europa.ec.itb.json.validation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -31,6 +27,10 @@ import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import org.apache.commons.io.FileUtils;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -61,10 +61,10 @@ public class ValidationSpecs {
 
     static {
         // Construct immutable (thread-safe) readers and writers for JSON and YAML.
-        var jsonMapper = new ObjectMapper();
+        var jsonMapper = JsonMapper.shared();
         JSON_READER = jsonMapper.reader();
         JSON_WRITER = jsonMapper.writer();
-        var yamlMapper = new YAMLMapper();
+        var yamlMapper = YAMLMapper.shared();
         YAML_READER = yamlMapper.reader();
         YAML_WRITER = yamlMapper.writer();
     }
