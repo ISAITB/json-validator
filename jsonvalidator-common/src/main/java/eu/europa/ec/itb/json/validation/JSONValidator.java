@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 
 import java.io.File;
@@ -82,7 +83,7 @@ public class JSONValidator {
 
     private final ObjectFactory objectFactory = new ObjectFactory();
     private final ValidationSpecs specs;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.shared();
     private JsonNode contentNode;
 
     /**

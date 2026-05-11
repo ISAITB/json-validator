@@ -27,9 +27,9 @@ import eu.europa.ec.itb.validation.commons.LocalisationHelper;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
 import eu.europa.ec.itb.validation.commons.error.ValidatorException;
 import org.apache.commons.io.FileUtils;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ObjectReader;
 import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.*;
@@ -61,10 +61,10 @@ public class ValidationSpecs {
 
     static {
         // Construct immutable (thread-safe) readers and writers for JSON and YAML.
-        var jsonMapper = new ObjectMapper();
+        var jsonMapper = JsonMapper.shared();
         JSON_READER = jsonMapper.reader();
         JSON_WRITER = jsonMapper.writer();
-        var yamlMapper = new YAMLMapper();
+        var yamlMapper = YAMLMapper.shared();
         YAML_READER = yamlMapper.reader();
         YAML_WRITER = yamlMapper.writer();
     }
