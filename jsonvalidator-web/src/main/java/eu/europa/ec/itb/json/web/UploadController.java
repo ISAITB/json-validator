@@ -22,10 +22,7 @@ import eu.europa.ec.itb.json.InputHelper;
 import eu.europa.ec.itb.json.validation.FileManager;
 import eu.europa.ec.itb.json.validation.JSONValidator;
 import eu.europa.ec.itb.json.validation.ValidationSpecs;
-import eu.europa.ec.itb.validation.commons.FileInfo;
-import eu.europa.ec.itb.validation.commons.LocalisationHelper;
-import eu.europa.ec.itb.validation.commons.RateLimitPolicy;
-import eu.europa.ec.itb.validation.commons.RateLimited;
+import eu.europa.ec.itb.validation.commons.*;
 import eu.europa.ec.itb.validation.commons.artifact.ExternalArtifactSupport;
 import eu.europa.ec.itb.validation.commons.artifact.TypedValidationArtifactInfo;
 import eu.europa.ec.itb.validation.commons.artifact.ValidationArtifactCombinationApproach;
@@ -222,12 +219,13 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                         proceedToValidate = false;
                     }
                     if (proceedToValidate) {
-                        JSONValidator validator = beans.getBean(JSONValidator.class, ValidationSpecs.builder(contentToValidate, localisationHelper, config)
+                        ValidationSpecs specs = ValidationSpecs.builder(contentToValidate, localisationHelper, config)
                                 .withValidationType(validationType)
                                 .withExternalSchemas(externalSchemas, getSchemaCombinationApproach(validationType, combinationType, config))
                                 .addInputToReport()
                                 .produceAggregateReport()
-                                .build());
+                                .build();
+                        JSONValidator validator = beans.getBean(JSONValidator.class, specs);
                         var reports = validator.validate();
                         // Cache detailed report.
                         try {
@@ -242,6 +240,7 @@ public class UploadController extends BaseUploadController<DomainConfig, DomainC
                             } else {
                                 fileName = "-";
                             }
+                            fileManager.saveReportProperties(new ReportProperties(fileName, specs.getValidationType()), inputID);
                             result.populateCommon(localisationHelper, validationType, config, inputID,
                                     fileName, reports.getDetailedReport(), reports.getAggregateReport(),
                                     new Translations(localisationHelper, reports.getDetailedReport(), config));

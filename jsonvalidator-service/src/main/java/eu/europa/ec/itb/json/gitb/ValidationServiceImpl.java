@@ -18,6 +18,7 @@ package eu.europa.ec.itb.json.gitb;
 import com.gitb.core.*;
 import com.gitb.vs.Void;
 import com.gitb.vs.*;
+import eu.europa.ec.itb.json.ApplicationConfig;
 import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.json.InputHelper;
 import eu.europa.ec.itb.json.validation.FileManager;
@@ -60,6 +61,8 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
     private final DomainConfig requestedDomainConfig;
 
     @Autowired
+    ApplicationConfig appConfig;
+    @Autowired
     private ApplicationContext ctx = null;
     @Autowired
     private FileManager fileManager = null;
@@ -91,7 +94,7 @@ public class ValidationServiceImpl implements ValidationService, WebServiceConte
         GetModuleDefinitionResponse response = new GetModuleDefinitionResponse();
         response.setModule(new ValidationModule());
         response.getModule().setId(domainConfig.getWebServiceId());
-        domainConfig.applyWebServiceMetadata(response.getModule());
+        domainConfig.applyWebServiceMetadata(response.getModule(), appConfig);
         response.getModule().setInputs(new TypedParameters());
         response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_CONTENT, "binary", UsageEnumeration.R, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_CONTENT)));
         response.getModule().getInputs().getParam().add(Utils.createParameter(ValidationConstants.INPUT_EMBEDDING_METHOD, "string", UsageEnumeration.O, domainConfig.getWebServiceDescription().get(ValidationConstants.INPUT_EMBEDDING_METHOD)));
