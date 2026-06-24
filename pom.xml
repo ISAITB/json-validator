@@ -42,6 +42,11 @@
         </developer>
     </developers>
 
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/ISAITB/json-validator/issues</url>
+    </issueManagement>
+
     <properties>
         <version.itbCommons>1.13.0-SNAPSHOT</version.itbCommons>
     </properties>
