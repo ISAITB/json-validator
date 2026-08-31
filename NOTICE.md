@@ -2,7 +2,7 @@
 
 Copyright (C) 2026 European Union
 
-Licensed under the EUPL, Version 1.2 or – as soon they will be approved by the European Commission - subsequent versions
+Licensed under the EUPL, Version 1.2 or â€“ as soon they will be approved by the European Commission - subsequent versions
 of the EUPL (the "Licence"); You may not use this work except in compliance with the Licence.
 
 You may obtain a copy of the Licence at:
@@ -19,16 +19,16 @@ This product depends on software developed by third parties as listed in the fol
 
 | Licence type | Name | Dependency | Version | Link |
 | :----------- | :--- | :--------- | :------ | :--- |
-| Eclipse Public License - v2.0, GNU Lesser General Public License (LGPL), Version 2.1 | Logback Classic Module | ch.qos.logback:logback-classic | 1.5.34 | http://logback.qos.ch/logback-classic |
-| Eclipse Public License - v2.0, GNU Lesser General Public License (LGPL), Version 2.1 | Logback Core Module | ch.qos.logback:logback-core | 1.5.34 | http://logback.qos.ch/logback-core |
+| Eclipse Public License - v2.0, GNU Lesser General Public License (LGPL), Version 2.1 | Logback Classic Module | ch.qos.logback:logback-classic | 1.5.38 | http://logback.qos.ch/logback-classic |
+| Eclipse Public License - v2.0, GNU Lesser General Public License (LGPL), Version 2.1 | Logback Core Module | ch.qos.logback:logback-core | 1.5.38 | http://logback.qos.ch/logback-core |
 | Apache License, Version 2.0 | bucket4j_jdk17-core | com.bucket4j:bucket4j_jdk17-core | 8.19.0 | http://github.com/bucket4j/bucket4j/bucket4j_jdk17-core |
 | Apache License, Version 2.0 | Internet Time Utility | com.ethlo.time:itu | 1.14.0 | https://github.com/ethlo/itu |
 | Apache License, Version 2.0 | ClassMate | com.fasterxml:classmate | 1.7.3 | https://github.com/FasterXML/java-classmate |
 | Apache License, Version 2.0 | Jackson-annotations | com.fasterxml.jackson.core:jackson-annotations | 2.22 | https://github.com/FasterXML/jackson |
-| Apache License, Version 2.0 | Jackson-core | com.fasterxml.jackson.core:jackson-core | 2.22.1 | https://github.com/FasterXML/jackson-core |
-| Apache License, Version 2.0 | jackson-databind | com.fasterxml.jackson.core:jackson-databind | 2.22.1 | https://github.com/FasterXML/jackson |
-| Apache License, Version 2.0 | Jackson-dataformat-YAML | com.fasterxml.jackson.dataformat:jackson-dataformat-yaml | 2.22.1 | https://github.com/FasterXML/jackson-dataformats-text |
-| Apache License, Version 2.0 | Jackson datatype: JSR310 | com.fasterxml.jackson.datatype:jackson-datatype-jsr310 | 2.22.1 | https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310 |
+| Apache License, Version 2.0 | Jackson-core | com.fasterxml.jackson.core:jackson-core | 2.22.2 | https://github.com/FasterXML/jackson-core |
+| Apache License, Version 2.0 | jackson-databind | com.fasterxml.jackson.core:jackson-databind | 2.22.2 | https://github.com/FasterXML/jackson |
+| Apache License, Version 2.0 | Jackson-dataformat-YAML | com.fasterxml.jackson.dataformat:jackson-dataformat-yaml | 2.22.2 | https://github.com/FasterXML/jackson-dataformats-text |
+| Apache License, Version 2.0 | Jackson datatype: JSR310 | com.fasterxml.jackson.datatype:jackson-datatype-jsr310 | 2.22.2 | https://github.com/FasterXML/jackson-modules-java8/jackson-datatype-jsr310 |
 | Apache License, Version 2.0 | Woodstox | com.fasterxml.woodstox:woodstox-core | 7.2.1 | https://github.com/FasterXML/woodstox |
 | Apache License, Version 2.0 | Caffeine cache | com.github.ben-manes.caffeine:caffeine | 3.2.4 | https://github.com/ben-manes/caffeine |
 | Apache License, Version 2.0 | JCIP Annotations under Apache License | com.github.stephenc.jcip:jcip-annotations | 1.0-1 | http://stephenc.github.com/jcip-annotations |
@@ -40,11 +40,11 @@ This product depends on software developed by third parties as listed in the fol
 | Apache License, Version 2.0 | json-path | com.jayway.jsonpath:json-path | 3.0.0 | https://github.com/jayway/JsonPath |
 | Apache License, Version 2.0 | MaxMind DB Reader | com.maxmind.db:maxmind-db | 4.1.0 | http://dev.maxmind.com/ |
 | Apache License, Version 2.0 | MaxMind GeoIP API | com.maxmind.geoip2:geoip2 | 5.2.0 | https://dev.maxmind.com/geoip/?lang=en |
-| Apache License, Version 2.0 | JsonSchemaValidator | com.networknt:json-schema-validator | 3.0.6 | https://github.com/networknt/json-schema-validator |
+| Apache License, Version 2.0 | JsonSchemaValidator | com.networknt:json-schema-validator | 3.0.7 | https://github.com/networknt/json-schema-validator |
 | Apache License, Version 2.0 | Nimbus Content Type | com.nimbusds:content-type | 2.3 | https://bitbucket.org/connect2id/nimbus-content-type |
 | Apache License, Version 2.0 | Nimbus LangTag | com.nimbusds:lang-tag | 1.7 | https://bitbucket.org/connect2id/nimbus-language-tags |
-| Apache License, Version 2.0 | Nimbus JOSE+JWT | com.nimbusds:nimbus-jose-jwt | 10.9 | https://bitbucket.org/connect2id/nimbus-jose-jwt |
-| Apache License, Version 2.0 | OAuth 2.0 SDK with OpenID Connect extensions | com.nimbusds:oauth2-oidc-sdk | 11.37.2 | https://bitbucket.org/connect2id/oauth-2.0-sdk-with-openid-connect-extensions |
+| Apache License, Version 2.0 | Nimbus JOSE+JWT | com.nimbusds:nimbus-jose-jwt | 10.9.1 | https://bitbucket.org/connect2id/nimbus-jose-jwt |
+| Apache License, Version 2.0 | OAuth 2.0 SDK with OpenID Connect and Federation extensions | com.nimbusds:oauth2-oidc-sdk | 11.38.2 | https://bitbucket.org/connect2id/oauth-2.0-sdk-with-openid-connect-extensions |
 | Eclipse Distribution License - v1.0 | istack common utility code runtime | com.sun.istack:istack-commons-runtime | 4.1.2 | https://projects.eclipse.org/projects/ee4j/istack-commons/istack-commons-runtime |
 | Apache License, Version 2.0 | Apache Commons Codec | commons-codec:commons-codec | 1.21.0 | https://commons.apache.org/proper/commons-codec/ |
 | Apache License, Version 2.0 | Apache Commons IO | commons-io:commons-io | 2.22.0 | https://commons.apache.org/proper/commons-io/ |
@@ -56,8 +56,8 @@ This product depends on software developed by third parties as listed in the fol
 | GNU Lesser General Public License (LGPL), Version 2.1 | Openhtmltopdf PDF Rendering (Apache PDF-BOX 3) | io.github.openhtmltopdf:openhtmltopdf-pdfbox | 1.1.66 | https://github.com/openhtmltopdf/openhtmltopdf/openhtmltopdf-pdfbox |
 | GNU Lesser General Public License (LGPL), Version 2.1 | Openhtmltopdf slf4j Support | io.github.openhtmltopdf:openhtmltopdf-slf4j | 1.1.66 | https://github.com/openhtmltopdf/openhtmltopdf/openhtmltopdf-slf4j |
 | GNU Lesser General Public License (LGPL), Version 2.1 | Openhtmltopdf SVG Support | io.github.openhtmltopdf:openhtmltopdf-svg-support | 1.1.66 | https://github.com/openhtmltopdf/openhtmltopdf/openhtmltopdf-svg-support |
-| Apache License, Version 2.0 | micrometer-commons | io.micrometer:micrometer-commons | 1.17.0 | https://github.com/micrometer-metrics/micrometer |
-| Apache License, Version 2.0 | micrometer-observation | io.micrometer:micrometer-observation | 1.17.0 | https://github.com/micrometer-metrics/micrometer |
+| Apache License, Version 2.0 | micrometer-commons | io.micrometer:micrometer-commons | 1.17.1 | https://github.com/micrometer-metrics/micrometer-commercial |
+| Apache License, Version 2.0 | micrometer-observation | io.micrometer:micrometer-observation | 1.17.1 | https://github.com/micrometer-metrics/micrometer-commercial |
 | Apache License, Version 2.0 | swagger-annotations-jakarta | io.swagger.core.v3:swagger-annotations-jakarta | 2.2.52 | https://github.com/swagger-api/swagger-core/modules/swagger-annotations-jakarta |
 | Apache License, Version 2.0 | swagger-core-jakarta | io.swagger.core.v3:swagger-core-jakarta | 2.2.52 | https://github.com/swagger-api/swagger-core/modules/swagger-core-jakarta |
 | Apache License, Version 2.0 | swagger-models-jakarta | io.swagger.core.v3:swagger-models-jakarta | 2.2.52 | https://github.com/swagger-api/swagger-core/modules/swagger-models-jakarta |
@@ -89,17 +89,17 @@ This product depends on software developed by third parties as listed in the fol
 | Apache License, Version 2.0 | Apache CXF Runtime Core for WSDL | org.apache.cxf:cxf-rt-wsdl | 4.2.3 | https://cxf.apache.org |
 | Apache License, Version 2.0 | Apache CXF Spring Boot Autoconfigure | org.apache.cxf:cxf-spring-boot-autoconfigure | 4.2.3 | https://cxf.apache.org |
 | Apache License, Version 2.0 | Apache CXF Spring Boot Starter JAX-WS | org.apache.cxf:cxf-spring-boot-starter-jaxws | 4.2.3 | https://cxf.apache.org |
-| Apache License, Version 2.0 | Apache Log4j API | org.apache.logging.log4j:log4j-api | 2.25.4 | https://logging.apache.org/log4j/2.x/ |
-| Apache License, Version 2.0 | Log4j API to SLF4J Adapter | org.apache.logging.log4j:log4j-to-slf4j | 2.25.4 | https://logging.apache.org/log4j/2.x/ |
+| Apache License, Version 2.0 | Apache Log4j API | org.apache.logging.log4j:log4j-api | 2.25.5 | https://logging.apache.org/log4j/2.x/ |
+| Apache License, Version 2.0 | Log4j API to SLF4J Adapter | org.apache.logging.log4j:log4j-to-slf4j | 2.25.5 | https://logging.apache.org/log4j/2.x/ |
 | Apache License, Version 2.0 | Apache Neethi | org.apache.neethi:neethi | 3.2.3 | https://ws.apache.org/neethi/ |
 | Apache License, Version 2.0 | Apache FontBox | org.apache.pdfbox:fontbox | 3.0.8 | http://pdfbox.apache.org/ |
 | Apache License, Version 2.0 | Apache PDFBox | org.apache.pdfbox:pdfbox | 3.0.8 | https://www.apache.org/pdfbox-parent/pdfbox/ |
 | Apache License, Version 2.0 | Apache PDFBox io | org.apache.pdfbox:pdfbox-io | 3.0.8 | https://www.apache.org/pdfbox-parent/pdfbox-io/ |
 | Apache License, Version 2.0 | Apache XmpBox | org.apache.pdfbox:xmpbox | 3.0.8 | https://www.apache.org/pdfbox-parent/xmpbox/ |
 | Apache License, Version 2.0 | Apache Tika core | org.apache.tika:tika-core | 3.3.2 | https://tika.apache.org/ |
-| Apache License, Version 2.0 | tomcat-embed-core | org.apache.tomcat.embed:tomcat-embed-core | 11.0.24 | https://tomcat.apache.org/ |
-| Apache License, Version 2.0 | tomcat-embed-el | org.apache.tomcat.embed:tomcat-embed-el | 11.0.24 | https://tomcat.apache.org/ |
-| Apache License, Version 2.0 | tomcat-embed-websocket | org.apache.tomcat.embed:tomcat-embed-websocket | 11.0.24 | https://tomcat.apache.org/ |
+| Apache License, Version 2.0 | tomcat-embed-core | org.apache.tomcat.embed:tomcat-embed-core | 11.0.25 | https://tomcat.apache.org/ |
+| Apache License, Version 2.0 | tomcat-embed-el | org.apache.tomcat.embed:tomcat-embed-el | 11.0.25 | https://tomcat.apache.org/ |
+| Apache License, Version 2.0 | tomcat-embed-websocket | org.apache.tomcat.embed:tomcat-embed-websocket | 11.0.25 | https://tomcat.apache.org/ |
 | Apache License, Version 2.0 | XmlSchema Core | org.apache.ws.xmlschema:xmlschema-core | 2.3.2 | https://ws.apache.org/commons/xmlschema20/xmlschema-core/ |
 | Apache License, Version 2.0 | org.apache.xmlgraphics:batik-anim | org.apache.xmlgraphics:batik-anim | 1.17 | http://xmlgraphics.apache.org/batik/batik-anim/ |
 | Apache License, Version 2.0 | org.apache.xmlgraphics:batik-awt-util | org.apache.xmlgraphics:batik-awt-util | 1.17 | http://xmlgraphics.apache.org/batik/batik-awt-util/ |
@@ -129,10 +129,10 @@ This product depends on software developed by third parties as listed in the fol
 | Eclipse Distribution License - v1.0 | JAXB Core | org.glassfish.jaxb:jaxb-core | 4.0.9 | https://eclipse-ee4j.github.io/jaxb-ri/ |
 | Eclipse Distribution License - v1.0 | JAXB Runtime | org.glassfish.jaxb:jaxb-runtime | 4.0.9 | https://eclipse-ee4j.github.io/jaxb-ri/ |
 | Eclipse Distribution License - v1.0 | TXW2 Runtime | org.glassfish.jaxb:txw2 | 4.0.9 | https://eclipse-ee4j.github.io/jaxb-ri/ |
-| Apache License, Version 2.0 | Hibernate Validator Engine | org.hibernate.validator:hibernate-validator | 9.1.0.Final | https://hibernate.org/validator |
+| Apache License, Version 2.0 | Hibernate Validator Engine | org.hibernate.validator:hibernate-validator | 9.1.3.Final | https://hibernate.org/validator |
 | Apache License, Version 2.0 | JBoss Logging 3 | org.jboss.logging:jboss-logging | 3.6.3.Final | https://www.jboss.org |
-| MIT License | jsoup Java HTML Parser | org.jsoup:jsoup | 1.23.1 | https://jsoup.org/ |
-| Apache License, Version 2.0 | JSpecify annotations | org.jspecify:jspecify | 1.0.0 | http://jspecify.org/ |
+| MIT License | jsoup Java HTML Parser | org.jsoup:jsoup | 1.23.2 | https://jsoup.org/ |
+| Apache License, Version 2.0 | JSpecify annotations | org.jspecify:jspecify | 1.0.1 | https://jspecify.dev/ |
 | The 3-Clause BSD License | asm | org.ow2.asm:asm | 9.10.1 | http://asm.ow2.io/ |
 | MIT License | JUL to SLF4J bridge | org.slf4j:jul-to-slf4j | 2.0.18 | http://www.slf4j.org |
 | MIT License | SLF4J API Module | org.slf4j:slf4j-api | 2.0.18 | http://www.slf4j.org |
@@ -140,43 +140,43 @@ This product depends on software developed by third parties as listed in the fol
 | Apache License, Version 2.0 | springdoc-openapi-starter-common | org.springdoc:springdoc-openapi-starter-common | 3.1.0 | https://springdoc.org/springdoc-openapi-starter-common/ |
 | Apache License, Version 2.0 | springdoc-openapi-starter-webmvc-api | org.springdoc:springdoc-openapi-starter-webmvc-api | 3.1.0 | https://springdoc.org/springdoc-openapi-starter-webmvc-api/ |
 | Apache License, Version 2.0 | springdoc-openapi-starter-webmvc-ui | org.springdoc:springdoc-openapi-starter-webmvc-ui | 3.1.0 | https://springdoc.org/springdoc-openapi-starter-webmvc-ui/ |
-| Apache License, Version 2.0 | Spring AOP | org.springframework:spring-aop | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | Spring Beans | org.springframework:spring-beans | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | Spring Context | org.springframework:spring-context | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | Spring Core | org.springframework:spring-core | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | Spring Expression Language (SpEL) | org.springframework:spring-expression | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | Spring Web | org.springframework:spring-web | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | Spring Web MVC | org.springframework:spring-webmvc | 7.0.8 | https://github.com/spring-projects/spring-framework |
-| Apache License, Version 2.0 | spring-boot | org.springframework.boot:spring-boot | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-autoconfigure | org.springframework.boot:spring-boot-autoconfigure | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-http-converter | org.springframework.boot:spring-boot-http-converter | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-jackson | org.springframework.boot:spring-boot-jackson | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-security | org.springframework.boot:spring-boot-security | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-security-oauth2-client | org.springframework.boot:spring-boot-security-oauth2-client | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-servlet | org.springframework.boot:spring-boot-servlet | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter | org.springframework.boot:spring-boot-starter | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-aspectj | org.springframework.boot:spring-boot-starter-aspectj | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-jackson | org.springframework.boot:spring-boot-starter-jackson | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-logging | org.springframework.boot:spring-boot-starter-logging | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-oauth2-client | org.springframework.boot:spring-boot-starter-oauth2-client | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-security | org.springframework.boot:spring-boot-starter-security | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-thymeleaf | org.springframework.boot:spring-boot-starter-thymeleaf | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-tomcat | org.springframework.boot:spring-boot-starter-tomcat | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-tomcat-runtime | org.springframework.boot:spring-boot-starter-tomcat-runtime | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-validation | org.springframework.boot:spring-boot-starter-validation | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-starter-web | org.springframework.boot:spring-boot-starter-web | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-thymeleaf | org.springframework.boot:spring-boot-thymeleaf | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-tomcat | org.springframework.boot:spring-boot-tomcat | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-validation | org.springframework.boot:spring-boot-validation | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-web-server | org.springframework.boot:spring-boot-web-server | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-boot-webmvc | org.springframework.boot:spring-boot-webmvc | 4.1.0 | https://spring.io/projects/spring-boot |
-| Apache License, Version 2.0 | spring-security-config | org.springframework.security:spring-security-config | 7.1.0 | https://spring.io/projects/spring-security |
-| Apache License, Version 2.0 | spring-security-core | org.springframework.security:spring-security-core | 7.1.0 | https://spring.io/projects/spring-security |
-| Apache License, Version 2.0 | spring-security-crypto | org.springframework.security:spring-security-crypto | 7.1.0 | https://spring.io/projects/spring-security |
-| Apache License, Version 2.0 | spring-security-oauth2-client | org.springframework.security:spring-security-oauth2-client | 7.1.0 | https://spring.io/projects/spring-security |
-| Apache License, Version 2.0 | spring-security-oauth2-core | org.springframework.security:spring-security-oauth2-core | 7.1.0 | https://spring.io/projects/spring-security |
-| Apache License, Version 2.0 | spring-security-oauth2-jose | org.springframework.security:spring-security-oauth2-jose | 7.1.0 | https://spring.io/projects/spring-security |
-| Apache License, Version 2.0 | spring-security-web | org.springframework.security:spring-security-web | 7.1.0 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | Spring AOP | org.springframework:spring-aop | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | Spring Beans | org.springframework:spring-beans | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | Spring Context | org.springframework:spring-context | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | Spring Core | org.springframework:spring-core | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | Spring Expression Language (SpEL) | org.springframework:spring-expression | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | Spring Web | org.springframework:spring-web | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | Spring Web MVC | org.springframework:spring-webmvc | 7.0.9 | https://github.com/spring-projects/spring-framework |
+| Apache License, Version 2.0 | spring-boot | org.springframework.boot:spring-boot | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-autoconfigure | org.springframework.boot:spring-boot-autoconfigure | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-http-converter | org.springframework.boot:spring-boot-http-converter | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-jackson | org.springframework.boot:spring-boot-jackson | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-security | org.springframework.boot:spring-boot-security | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-security-oauth2-client | org.springframework.boot:spring-boot-security-oauth2-client | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-servlet | org.springframework.boot:spring-boot-servlet | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter | org.springframework.boot:spring-boot-starter | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-aspectj | org.springframework.boot:spring-boot-starter-aspectj | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-jackson | org.springframework.boot:spring-boot-starter-jackson | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-logging | org.springframework.boot:spring-boot-starter-logging | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-oauth2-client | org.springframework.boot:spring-boot-starter-oauth2-client | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-security | org.springframework.boot:spring-boot-starter-security | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-thymeleaf | org.springframework.boot:spring-boot-starter-thymeleaf | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-tomcat | org.springframework.boot:spring-boot-starter-tomcat | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-tomcat-runtime | org.springframework.boot:spring-boot-starter-tomcat-runtime | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-validation | org.springframework.boot:spring-boot-starter-validation | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-starter-web | org.springframework.boot:spring-boot-starter-web | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-thymeleaf | org.springframework.boot:spring-boot-thymeleaf | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-tomcat | org.springframework.boot:spring-boot-tomcat | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-validation | org.springframework.boot:spring-boot-validation | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-web-server | org.springframework.boot:spring-boot-web-server | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-boot-webmvc | org.springframework.boot:spring-boot-webmvc | 4.1.1 | https://spring.io/projects/spring-boot |
+| Apache License, Version 2.0 | spring-security-config | org.springframework.security:spring-security-config | 7.1.1 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | spring-security-core | org.springframework.security:spring-security-core | 7.1.1 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | spring-security-crypto | org.springframework.security:spring-security-crypto | 7.1.1 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | spring-security-oauth2-client | org.springframework.security:spring-security-oauth2-client | 7.1.1 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | spring-security-oauth2-core | org.springframework.security:spring-security-oauth2-core | 7.1.1 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | spring-security-oauth2-jose | org.springframework.security:spring-security-oauth2-jose | 7.1.1 | https://spring.io/projects/spring-security |
+| Apache License, Version 2.0 | spring-security-web | org.springframework.security:spring-security-web | 7.1.1 | https://spring.io/projects/spring-security |
 | Apache License, Version 2.0 | thymeleaf | org.thymeleaf:thymeleaf | 3.1.5.RELEASE | http://www.thymeleaf.org/thymeleaf-lib/thymeleaf |
 | Apache License, Version 2.0 | thymeleaf-spring6 | org.thymeleaf:thymeleaf-spring6 | 3.1.5.RELEASE | http://www.thymeleaf.org/thymeleaf-lib/thymeleaf-spring6 |
 | Apache License, Version 2.0 | unbescape | org.unbescape:unbescape | 1.1.6.RELEASE | http://www.unbescape.org |
@@ -186,12 +186,12 @@ This product depends on software developed by third parties as listed in the fol
 | MIT License | jquery | org.webjars:jquery | 3.7.1 | http://webjars.org |
 | Apache License, Version 2.0 | Swagger UI | org.webjars:swagger-ui | 5.32.11 | https://www.webjars.org |
 | MIT License | webjars-locator-core | org.webjars:webjars-locator-core | 0.59 | http://webjars.org |
-| MIT License | webjars-locator-lite | org.webjars:webjars-locator-lite | 1.1.3 | https://webjars.org |
+| MIT License | webjars-locator-lite | org.webjars:webjars-locator-lite | 1.1.4 | https://webjars.org |
 | Apache License, Version 2.0 | XML Resolver | org.xmlresolver:xmlresolver | 5.3.3 | https://github.com/xmlresolver/xmlresolver |
 | Apache License, Version 2.0 | SnakeYAML | org.yaml:snakeyaml | 2.6 | https://bitbucket.org/snakeyaml/snakeyaml |
-| Apache License, Version 2.0 | Jackson-core | tools.jackson.core:jackson-core | 3.2.1 | https://github.com/FasterXML/jackson-core |
-| Apache License, Version 2.0 | jackson-databind | tools.jackson.core:jackson-databind | 3.2.1 | https://github.com/FasterXML/jackson |
-| Apache License, Version 2.0 | Jackson-dataformat-YAML | tools.jackson.dataformat:jackson-dataformat-yaml | 3.2.1 | https://github.com/FasterXML/jackson-dataformats-text |
+| Apache License, Version 2.0 | Jackson-core | tools.jackson.core:jackson-core | 3.2.2 | https://github.com/FasterXML/jackson-core |
+| Apache License, Version 2.0 | jackson-databind | tools.jackson.core:jackson-databind | 3.2.2 | https://github.com/FasterXML/jackson |
+| Apache License, Version 2.0 | Jackson-dataformat-YAML | tools.jackson.dataformat:jackson-dataformat-yaml | 3.2.2 | https://github.com/FasterXML/jackson-dataformats-text |
 | Common Public License 1.0 | WSDL4J | wsdl4j:wsdl4j | 1.6.3 | http://sf.net/projects/wsdl4j |
 | Apache License, Version 2.0 | XML Commons External Components XML APIs | xml-apis:xml-apis | 1.0.b2 | http://xml.apache.org/commons/#external |
 | Apache License, Version 2.0 | XML Commons External Components XML APIs Extensions | xml-apis:xml-apis-ext | 1.3.04 | http://xml.apache.org/commons/components/external/ |
@@ -415,13 +415,13 @@ The mapping of licences listed here to libraries is provided by the previous map
 ```
 Common Public License Version 1.0
 
-THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC LICENSE (“AGREEMENT”). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT’S ACCEPTANCE OF THIS AGREEMENT.
+THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC LICENSE (â€œAGREEMENTâ€�). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENTâ€™S ACCEPTANCE OF THIS AGREEMENT.
 
-1. DEFINITIONS “Contribution” means:
+1. DEFINITIONS â€œContributionâ€� means:
 
 a) in the case of the initial Contributor, the initial code and documentation distributed under this Agreement, and
 
-b) in the case of each subsequent Contributor: i) changes to the Program, and ii) additions to the Program; where such changes and/or additions to the Program originate from and are distributed by that particular Contributor. A Contribution ‘originates’ from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributor’s behalf. Contributions do not include additions to the Program which: (i) are separate modules of software distributed in conjunction with the Program under their own license agreement, and (ii) are not derivative works of the Program. “Contributor” means any person or entity that distributes the Program. “Licensed Patents ” mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program. “Program” means the Contributions distributed in accordance with this Agreement. “Recipient” means anyone who receives the Program under this Agreement, including all Contributors.
+b) in the case of each subsequent Contributor: i) changes to the Program, and ii) additions to the Program; where such changes and/or additions to the Program originate from and are distributed by that particular Contributor. A Contribution â€˜originatesâ€™ from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributorâ€™s behalf. Contributions do not include additions to the Program which: (i) are separate modules of software distributed in conjunction with the Program under their own license agreement, and (ii) are not derivative works of the Program. â€œContributorâ€� means any person or entity that distributes the Program. â€œLicensed Patents â€� mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program. â€œProgramâ€� means the Contributions distributed in accordance with this Agreement. â€œRecipientâ€� means anyone who receives the Program under this Agreement, including all Contributors.
 
 2. GRANT OF RIGHTS
 
@@ -429,7 +429,7 @@ a) Subject to the terms of this Agreement, each Contributor hereby grants Recipi
 
 b) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed Patents to make, use, sell, offer to sell, import and otherwise transfer the Contribution of such Contributor, if any, in source code and object code form. This patent license shall apply to the combination of the Contribution and the Program if, at the time the Contribution is added by the Contributor, such addition of the Contribution causes such combination to be covered by the Licensed Patents. The patent license shall not apply to any other combinations which include the Contribution. No hardware per se is licensed hereunder.
 
-c) Recipient understands that although each Contributor grants the licenses to its Contributions set forth herein, no assurances are provided by any Contributor that the Program does not infringe the patent or other intellectual property rights of any other entity. Each Contributor disclaims any liability to Recipient for claims brought by any other entity based on infringement of intellectual property rights or otherwise. As a condition to exercising the rights and licenses granted hereunder, each Recipient hereby assumes sole responsibility to secure any other intellectual property rights needed, if any. For example, if a third party patent license is required to allow Recipient to distribute the Program, it is Recipient’s responsibility to acquire that license before distributing the Program.
+c) Recipient understands that although each Contributor grants the licenses to its Contributions set forth herein, no assurances are provided by any Contributor that the Program does not infringe the patent or other intellectual property rights of any other entity. Each Contributor disclaims any liability to Recipient for claims brought by any other entity based on infringement of intellectual property rights or otherwise. As a condition to exercising the rights and licenses granted hereunder, each Recipient hereby assumes sole responsibility to secure any other intellectual property rights needed, if any. For example, if a third party patent license is required to allow Recipient to distribute the Program, it is Recipientâ€™s responsibility to acquire that license before distributing the Program.
 
 d) Each Contributor represents that to its knowledge it has sufficient copyright rights in its Contribution, if any, to grant the copyright license set forth in this Agreement.
 
@@ -447,19 +447,19 @@ iii) states that any provisions which differ from this Agreement are offered by 
 
 iv) states that source code for the Program is available from such Contributor, and informs licensees how to obtain it in a reasonable manner on or through a medium customarily used for software exchange. When the Program is made available in source code form: a) it must be made available under this Agreement; and b) a copy of this Agreement must be included with each copy of the Program. Contributors may not remove or alter any copyright notices contained within the Program. Each Contributor must identify itself as the originator of its Contribution, if any, in a manner that reasonably allows subsequent Recipients to identify the originator of the Contribution.
 
-4. COMMERCIAL DISTRIBUTION Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor (“Commercial Contributor”) hereby agrees to defend and indemnify every other Contributor (“Indemnified Contributor”) against any losses, damages and costs (collectively “Losses”) arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must:
+4. COMMERCIAL DISTRIBUTION Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor (â€œCommercial Contributorâ€�) hereby agrees to defend and indemnify every other Contributor (â€œIndemnified Contributorâ€�) against any losses, damages and costs (collectively â€œLossesâ€�) arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must:
 
 a) promptly notify the Commercial Contributor in writing of such claim, and
 
-b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense. For example, a Contributor might include the Program in a commercial product offering, Product X. That Contributor is then a Commercial Contributor. If that Commercial Contributor then makes performance claims, or offers warranties related to Product X, those performance claims and warranties are such Commercial Contributor’s responsibility alone. Under this section, the Commercial Contributor would have to defend claims against the other Contributors related to those performance claims and warranties, and if a court requires any other Contributor to pay any damages as a result, the Commercial Contributor must pay those damages.
+b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense. For example, a Contributor might include the Program in a commercial product offering, Product X. That Contributor is then a Commercial Contributor. If that Commercial Contributor then makes performance claims, or offers warranties related to Product X, those performance claims and warranties are such Commercial Contributorâ€™s responsibility alone. Under this section, the Commercial Contributor would have to defend claims against the other Contributors related to those performance claims and warranties, and if a court requires any other Contributor to pay any damages as a result, the Commercial Contributor must pay those damages.
 
-5. NO WARRANTY EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON AN “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+5. NO WARRANTY EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON AN â€œAS ISâ€� BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
 Each Recipient is solely responsible for determining the appropriateness of using and distributing the Program and assumes all risks associated with its exercise of rights under this Agreement, including but not limited to the risks and costs of program errors, compliance with applicable laws, damage to or loss of data, programs or equipment, and unavailability or interruption of operations.
 
 6. DISCLAIMER OF LIABILITY EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
-7. GENERAL If any provision of this Agreement is invalid or unenforceable under applicable law, it shall not affect the validity or enforceability of the remainder of the terms of this Agreement, and without further action by the parties hereto, such provision shall be reformed to the minimum extent necessary to make such provision valid and enforceable. If Recipient institutes patent litigation against a Contributor with respect to a patent applicable to software (including a cross-claim or counterclaim in a lawsuit), then any patent licenses granted by that Contributor to such Recipient under this Agreement shall terminate as of the date such litigation is filed. In addition, if Recipient institutes patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Program itself (excluding combinations of the Program with other software or hardware) infringes such Recipient’s patent(s), then such Recipient’s rights granted under Section 2(b) shall terminate as of the date such litigation is filed. All Recipient’s rights under this Agreement shall terminate if it fails to comply with any of the material terms or conditions of this Agreement and does not cure such failure in a reasonable period of time after becoming aware of such noncompliance. If all Recipient’s rights under this Agreement terminate, Recipient agrees to cease use and distribution of the Program as soon as reasonably practicable. However, Recipient’s obligations under this Agreement and any licenses granted by Recipient relating to the Program shall continue and survive. Everyone is permitted to copy and distribute copies of this Agreement, but in order to avoid inconsistency the Agreement is copyrighted and may only be modified in the following manner. The Agreement Steward reserves the right to publish new versions (including revisions) of this Agreement from time to time. No one other than the Agreement Steward has the right to modify this Agreement. IBM is the initial Agreement Steward. IBM may assign the responsibility to serve as the Agreement Steward to a suitable separate entity. Each new version of the Agreement will be given a distinguishing version number. The Program (including Contributions) may always be distributed subject to the version of the Agreement under which it was received. In addition, after a new version of the Agreement is published, Contributor may elect to distribute the Program (including its Contributions) under the new version. Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved. This Agreement is governed by the laws of the State of New York and the intellectual property laws of the United States of America. No party to this Agreement will bring a legal action under this Agreement more than one year after the cause of action arose. Each party waives its rights to a jury trial in any resulting litigation.
+7. GENERAL If any provision of this Agreement is invalid or unenforceable under applicable law, it shall not affect the validity or enforceability of the remainder of the terms of this Agreement, and without further action by the parties hereto, such provision shall be reformed to the minimum extent necessary to make such provision valid and enforceable. If Recipient institutes patent litigation against a Contributor with respect to a patent applicable to software (including a cross-claim or counterclaim in a lawsuit), then any patent licenses granted by that Contributor to such Recipient under this Agreement shall terminate as of the date such litigation is filed. In addition, if Recipient institutes patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Program itself (excluding combinations of the Program with other software or hardware) infringes such Recipientâ€™s patent(s), then such Recipientâ€™s rights granted under Section 2(b) shall terminate as of the date such litigation is filed. All Recipientâ€™s rights under this Agreement shall terminate if it fails to comply with any of the material terms or conditions of this Agreement and does not cure such failure in a reasonable period of time after becoming aware of such noncompliance. If all Recipientâ€™s rights under this Agreement terminate, Recipient agrees to cease use and distribution of the Program as soon as reasonably practicable. However, Recipientâ€™s obligations under this Agreement and any licenses granted by Recipient relating to the Program shall continue and survive. Everyone is permitted to copy and distribute copies of this Agreement, but in order to avoid inconsistency the Agreement is copyrighted and may only be modified in the following manner. The Agreement Steward reserves the right to publish new versions (including revisions) of this Agreement from time to time. No one other than the Agreement Steward has the right to modify this Agreement. IBM is the initial Agreement Steward. IBM may assign the responsibility to serve as the Agreement Steward to a suitable separate entity. Each new version of the Agreement will be given a distinguishing version number. The Program (including Contributions) may always be distributed subject to the version of the Agreement under which it was received. In addition, after a new version of the Agreement is published, Contributor may elect to distribute the Program (including its Contributions) under the new version. Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved. This Agreement is governed by the laws of the State of New York and the intellectual property laws of the United States of America. No party to this Agreement will bring a legal action under this Agreement more than one year after the cause of action arose. Each party waives its rights to a jury trial in any resulting litigation.
 ```
 
 ### Eclipse Distribution License - v1.0
@@ -580,33 +580,33 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
 ```
 Eclipse Public License - v 2.0
-THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC LICENSE (“AGREEMENT”). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
+THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC LICENSE (â€œAGREEMENTâ€�). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
 
 1. DEFINITIONS
-“Contribution” means:
+â€œContributionâ€� means:
 
 a) in the case of the initial Contributor, the initial content Distributed under this Agreement, and
 b) in the case of each subsequent Contributor:
 i) changes to the Program, and
 ii) additions to the Program;
-where such changes and/or additions to the Program originate from and are Distributed by that particular Contributor. A Contribution “originates” from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributor's behalf. Contributions do not include changes or additions to the Program that are not Modified Works.
-“Contributor” means any person or entity that Distributes the Program.
+where such changes and/or additions to the Program originate from and are Distributed by that particular Contributor. A Contribution â€œoriginatesâ€� from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributor's behalf. Contributions do not include changes or additions to the Program that are not Modified Works.
+â€œContributorâ€� means any person or entity that Distributes the Program.
 
-“Licensed Patents” mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program.
+â€œLicensed Patentsâ€� mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program.
 
-“Program” means the Contributions Distributed in accordance with this Agreement.
+â€œProgramâ€� means the Contributions Distributed in accordance with this Agreement.
 
-“Recipient” means anyone who receives the Program under this Agreement or any Secondary License (as applicable), including Contributors.
+â€œRecipientâ€� means anyone who receives the Program under this Agreement or any Secondary License (as applicable), including Contributors.
 
-“Derivative Works” shall mean any work, whether in Source Code or other form, that is based on (or derived from) the Program and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship.
+â€œDerivative Worksâ€� shall mean any work, whether in Source Code or other form, that is based on (or derived from) the Program and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship.
 
-“Modified Works” shall mean any work in Source Code or other form that results from an addition to, deletion from, or modification of the contents of the Program, including, for purposes of clarity any new file in Source Code form that contains any contents of the Program. Modified Works shall not include works that contain only declarations, interfaces, types, classes, structures, or files of the Program solely in each case in order to link to, bind by name, or subclass the Program or Modified Works thereof.
+â€œModified Worksâ€� shall mean any work in Source Code or other form that results from an addition to, deletion from, or modification of the contents of the Program, including, for purposes of clarity any new file in Source Code form that contains any contents of the Program. Modified Works shall not include works that contain only declarations, interfaces, types, classes, structures, or files of the Program solely in each case in order to link to, bind by name, or subclass the Program or Modified Works thereof.
 
-“Distribute” means the acts of a) distributing or b) making available in any manner that enables the transfer of a copy.
+â€œDistributeâ€� means the acts of a) distributing or b) making available in any manner that enables the transfer of a copy.
 
-“Source Code” means the form of a Program preferred for making modifications, including but not limited to software source code, documentation source, and configuration files.
+â€œSource Codeâ€� means the form of a Program preferred for making modifications, including but not limited to software source code, documentation source, and configuration files.
 
-“Secondary License” means either the GNU General Public License, Version 2.0, or any later versions of that license, including any exceptions or additional permissions as identified by the initial Contributor.
+â€œSecondary Licenseâ€� means either the GNU General Public License, Version 2.0, or any later versions of that license, including any exceptions or additional permissions as identified by the initial Contributor.
 
 2. GRANT OF RIGHTS
 a) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, Distribute and sublicense the Contribution of such Contributor, if any, and such Derivative Works.
@@ -627,15 +627,15 @@ iv) requires any subsequent distribution of the Program by any party to be under
 
 a) it must be made available under this Agreement, or if the Program (i) is combined with other material in a separate file or files made available under a Secondary License, and (ii) the initial Contributor attached to the Source Code the notice described in Exhibit A of this Agreement, then the Program may be made available under the terms of such Secondary Licenses, and
 b) a copy of this Agreement must be included with each copy of the Program.
-3.3 Contributors may not remove or alter any copyright, patent, trademark, attribution notices, disclaimers of warranty, or limitations of liability (‘notices’) contained within the Program from any copy of the Program which they Distribute, provided that Contributors may add their own appropriate notices.
+3.3 Contributors may not remove or alter any copyright, patent, trademark, attribution notices, disclaimers of warranty, or limitations of liability (â€˜noticesâ€™) contained within the Program from any copy of the Program which they Distribute, provided that Contributors may add their own appropriate notices.
 
 4. COMMERCIAL DISTRIBUTION
-Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor (“Commercial Contributor”) hereby agrees to defend and indemnify every other Contributor (“Indemnified Contributor”) against any losses, damages and costs (collectively “Losses”) arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must: a) promptly notify the Commercial Contributor in writing of such claim, and b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense.
+Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor (â€œCommercial Contributorâ€�) hereby agrees to defend and indemnify every other Contributor (â€œIndemnified Contributorâ€�) against any losses, damages and costs (collectively â€œLossesâ€�) arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must: a) promptly notify the Commercial Contributor in writing of such claim, and b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense.
 
 For example, a Contributor might include the Program in a commercial product offering, Product X. That Contributor is then a Commercial Contributor. If that Commercial Contributor then makes performance claims, or offers warranties related to Product X, those performance claims and warranties are such Commercial Contributor's responsibility alone. Under this section, the Commercial Contributor would have to defend claims against the other Contributors related to those performance claims and warranties, and if a court requires any other Contributor to pay any damages as a result, the Commercial Contributor must pay those damages.
 
 5. NO WARRANTY
-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE PROGRAM IS PROVIDED ON AN “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each Recipient is solely responsible for determining the appropriateness of using and distributing the Program and assumes all risks associated with its exercise of rights under this Agreement, including but not limited to the risks and costs of program errors, compliance with applicable laws, damage to or loss of data, programs or equipment, and unavailability or interruption of operations.
+EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE PROGRAM IS PROVIDED ON AN â€œAS ISâ€� BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each Recipient is solely responsible for determining the appropriateness of using and distributing the Program and assumes all risks associated with its exercise of rights under this Agreement, including but not limited to the risks and costs of program errors, compliance with applicable laws, damage to or loss of data, programs or equipment, and unavailability or interruption of operations.
 
 6. DISCLAIMER OF LIABILITY
 EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, AND TO THE EXTENT PERMITTED BY APPLICABLE LAW, NEITHER RECIPIENT NOR ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
@@ -651,8 +651,8 @@ Everyone is permitted to copy and distribute copies of this Agreement, but in or
 
 Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved. Nothing in this Agreement is intended to be enforceable by any entity that is not a Contributor or Recipient. No third-party beneficiary rights are created under this Agreement.
 
-Exhibit A – Form of Secondary Licenses Notice
-“This Source Code may also be made available under the following Secondary Licenses when the conditions for such availability set forth in the Eclipse Public License, v. 2.0 are satisfied: {name license(s), version(s), and exceptions or additional permissions here}.”
+Exhibit A â€“ Form of Secondary Licenses Notice
+â€œThis Source Code may also be made available under the following Secondary Licenses when the conditions for such availability set forth in the Eclipse Public License, v. 2.0 are satisfied: {name license(s), version(s), and exceptions or additional permissions here}.â€�
 
 Simply including a copy of this Agreement, including this Exhibit A is not sufficient to license the Source Code under Secondary Licenses.
 
@@ -665,9 +665,9 @@ You may add additional accurate notices of copyright ownership.
 
 ```
                       EUROPEAN UNION PUBLIC LICENCE v. 1.2
-                      EUPL © the European Union 2007, 2016
+                      EUPL Â© the European Union 2007, 2016
 
-This European Union Public Licence (the ‘EUPL’) applies to the Work (as defined
+This European Union Public Licence (the â€˜EUPLâ€™) applies to the Work (as defined
 below) which is provided under the terms of this Licence. Any use of the Work,
 other than as authorised under this Licence is prohibited (to the extent such
 use is covered by a right of the copyright holder of the Work).
@@ -684,36 +684,36 @@ or has expressed by any other means his willingness to license under the EUPL.
 
 In this Licence, the following terms have the following meaning:
 
-- ‘The Licence’: this Licence.
+- â€˜The Licenceâ€™: this Licence.
 
-- ‘The Original Work’: the work or software distributed or communicated by the
+- â€˜The Original Workâ€™: the work or software distributed or communicated by the
   Licensor under this Licence, available as Source Code and also as Executable
   Code as the case may be.
 
-- ‘Derivative Works’: the works or software that could be created by the
+- â€˜Derivative Worksâ€™: the works or software that could be created by the
   Licensee, based upon the Original Work or modifications thereof. This Licence
   does not define the extent of modification or dependence on the Original Work
   required in order to classify a work as a Derivative Work; this extent is
   determined by copyright law applicable in the country mentioned in Article 15.
 
-- ‘The Work’: the Original Work or its Derivative Works.
+- â€˜The Workâ€™: the Original Work or its Derivative Works.
 
-- ‘The Source Code’: the human-readable form of the Work which is the most
+- â€˜The Source Codeâ€™: the human-readable form of the Work which is the most
   convenient for people to study and modify.
 
-- ‘The Executable Code’: any code which has generally been compiled and which is
+- â€˜The Executable Codeâ€™: any code which has generally been compiled and which is
   meant to be interpreted by a computer as a program.
 
-- ‘The Licensor’: the natural or legal person that distributes or communicates
+- â€˜The Licensorâ€™: the natural or legal person that distributes or communicates
   the Work under the Licence.
 
-- ‘Contributor(s)’: any natural or legal person who modifies the Work under the
+- â€˜Contributor(s)â€™: any natural or legal person who modifies the Work under the
   Licence, or otherwise contributes to the creation of a Derivative Work.
 
-- ‘The Licensee’ or ‘You’: any natural or legal person who makes any usage of
+- â€˜The Licenseeâ€™ or â€˜Youâ€™: any natural or legal person who makes any usage of
   the Work under the terms of the Licence.
 
-- ‘Distribution’ or ‘Communication’: any act of selling, giving, lending,
+- â€˜Distributionâ€™ or â€˜Communicationâ€™: any act of selling, giving, lending,
   renting, distributing, communicating, transmitting, or otherwise making
   available, online or offline, copies of the Work or providing access to its
   essential functionalities at the disposal of any other natural or legal
@@ -779,15 +779,15 @@ Copyleft clause: If the Licensee distributes or communicates copies of the
 Original Works or Derivative Works, this Distribution or Communication will be
 done under the terms of this Licence or of a later version of this Licence
 unless the Original Work is expressly distributed only under this version of the
-Licence — for example by communicating ‘EUPL v. 1.2 only’. The Licensee
+Licence â€” for example by communicating â€˜EUPL v. 1.2 onlyâ€™. The Licensee
 (becoming Licensor) cannot offer or impose any additional terms or conditions on
 the Work or Derivative Work that alter or restrict the terms of the Licence.
 
 Compatibility clause: If the Licensee Distributes or Communicates Derivative
 Works or copies thereof based upon both the Work and another work licensed under
 a Compatible Licence, this Distribution or Communication can be done under the
-terms of this Compatible Licence. For the sake of this clause, ‘Compatible
-Licence’ refers to the licences listed in the appendix attached to this Licence.
+terms of this Compatible Licence. For the sake of this clause, â€˜Compatible
+Licenceâ€™ refers to the licences listed in the appendix attached to this Licence.
 Should the Licensee's obligations under the Compatible Licence conflict with
 his/her obligations under this Licence, the obligations of the Compatible
 Licence shall prevail.
@@ -820,9 +820,9 @@ terms of this Licence.
 
 The Work is a work in progress, which is continuously improved by numerous
 Contributors. It is not a finished work and may therefore contain defects or
-‘bugs’ inherent to this type of development.
+â€˜bugsâ€™ inherent to this type of development.
 
-For the above reason, the Work is provided under the Licence on an ‘as is’ basis
+For the above reason, the Work is provided under the Licence on an â€˜as isâ€™ basis
 and without warranties of any kind concerning the Work, including without
 limitation merchantability, fitness for a particular purpose, absence of defects
 or errors, accuracy, non-infringement of intellectual property rights other than
@@ -854,7 +854,7 @@ the fact You have accepted any warranty or additional liability.
 
 10. Acceptance of the Licence
 
-The provisions of this Licence can be accepted by clicking on an icon ‘I agree’
+The provisions of this Licence can be accepted by clicking on an icon â€˜I agreeâ€™
 placed under the bottom of a window displaying the text of this Licence or by
 affirming consent in any other similar way, in accordance with the rules of
 applicable law. Clicking on that icon indicates your clear and irrevocable
@@ -929,7 +929,7 @@ Without prejudice to specific agreement between parties,
 
 Appendix
 
-‘Compatible Licences’ according to Article 5 EUPL are:
+â€˜Compatible Licencesâ€™ according to Article 5 EUPL are:
 
 - GNU General Public License (GPL) v. 2, v. 3
 - GNU Affero General Public License (AGPL) v. 3
@@ -941,7 +941,7 @@ Appendix
 - Creative Commons Attribution-ShareAlike v. 3.0 Unported (CC BY-SA 3.0) for
   works other than software
 - European Union Public Licence (EUPL) v. 1.1, v. 1.2
-- Québec Free and Open-Source Licence — Reciprocity (LiLiQ-R) or Strong
+- QuÃ©bec Free and Open-Source Licence â€” Reciprocity (LiLiQ-R) or Strong
   Reciprocity (LiLiQ-R+).
 
 The European Commission may update this Appendix to later versions of the above
@@ -2300,7 +2300,7 @@ COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.1
 
   The Covered Software is a "commercial item," as that term is defined
   in 48 C.F.R. 2.101 (Oct. 1995), consisting of "commercial computer
-  software" (as that term is defined at 48 C.F.R. §
+  software" (as that term is defined at 48 C.F.R. Â§
   252.227-7014(a)(1)) and "commercial computer software documentation"
   as such terms are used in 48 C.F.R. 12.212 (Sept. 1995). Consistent
   with 48 C.F.R. 12.212 and 48 C.F.R. 227.7202-1 through 227.7202-4
@@ -3058,7 +3058,7 @@ COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.1
 
     The Covered Software is a "commercial item," as that term is defined
     in 48 C.F.R. 2.101 (Oct. 1995), consisting of "commercial computer
-    software" (as that term is defined at 48 C.F.R. §
+    software" (as that term is defined at 48 C.F.R. Â§
     252.227-7014(a)(1)) and "commercial computer software documentation"
     as such terms are used in 48 C.F.R. 12.212 (Sept. 1995). Consistent
     with 48 C.F.R. 12.212 and 48 C.F.R. 227.7202-1 through 227.7202-4
@@ -3549,7 +3549,7 @@ https://www.eclipse.org/legal/epl-2.0
 ```
 Copyright (C) 2026 European Union
 
-Licensed under the EUPL, Version 1.2 or – as soon they will be approved by the European Commission - subsequent versions
+Licensed under the EUPL, Version 1.2 or â€“ as soon they will be approved by the European Commission - subsequent versions
 of the EUPL (the "Licence"); You may not use this work except in compliance with the Licence.
 
 You may obtain a copy of the Licence at:
@@ -3572,7 +3572,7 @@ Copyright 2008 Google Inc.
 ```
 Copyright (C) 2026 European Union
 
-Licensed under the EUPL, Version 1.2 or – as soon they will be approved by the European Commission - subsequent versions
+Licensed under the EUPL, Version 1.2 or â€“ as soon they will be approved by the European Commission - subsequent versions
 of the EUPL (the "Licence"); You may not use this work except in compliance with the Licence.
 
 You may obtain a copy of the Licence at:
@@ -3595,7 +3595,7 @@ This content is produced and maintained by the Jakarta Annotations project.
 
 ## Trademarks
 
-Jakarta Annotations™ is a trademark of the Eclipse Foundation.
+Jakarta Annotationsâ„¢ is a trademark of the Eclipse Foundation.
 
 ## Copyright
 
@@ -3701,7 +3701,7 @@ This content is produced and maintained by the Jakarta XML Binding project.
 
 ## Trademarks
 
-Jakarta XML Binding™ is a trademark of the Eclipse Foundation.
+Jakarta XML Bindingâ„¢ is a trademark of the Eclipse Foundation.
 
 ## Copyright
 
