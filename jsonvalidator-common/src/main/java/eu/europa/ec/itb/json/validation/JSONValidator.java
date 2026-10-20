@@ -328,16 +328,21 @@ public class JSONValidator {
                     .locale(specs.getLocalisationHelper().getLocale())
                     .messageSource(new ResourceBundleMessageSource("i18n/jsv-messages"))
                     .build();
-            var registry = SchemaRegistry.builder()
+            var importUriAuthorizer = ImportedUriAuthorizer.from(appConfig, specs.getDomainConfig(), specs.getValidationType()).orElse(null);
+            var registryBuilder = SchemaRegistry.builder()
                     .defaultDialectId(Dialects.getDraft202012().getId())
                     .schemaRegistryConfig(registryConfig)
                     .schemaCacheEnabled(false)
                     .nodeReader(jsonReader)
                     .resourceLoaders(builder -> builder.add(new LocalSchemaResolver(specs.getDomainConfig(), localSchemaCache, schemaInfo,
-                            ImportedUriAuthorizer.from(appConfig, specs.getDomainConfig(), specs.getValidationType()).orElse(null),
+                            importUriAuthorizer,
                             ImportedFileAuthorizer.from(appConfig, specs.getDomainConfig())
-                    )))
-                    .build();
+                    )));
+            if (importUriAuthorizer != null) {
+                // Schemas that can be provided by users must not be able to load the resources on the validator's classpath.
+                registryBuilder = LocalSchemaResolver.blockClasspathResources(registryBuilder);
+            }
+            var registry = registryBuilder.build();
             return Pair.of(registry.getSchema(jsonNode), jsonReader);
         } catch (Exception e) {
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
