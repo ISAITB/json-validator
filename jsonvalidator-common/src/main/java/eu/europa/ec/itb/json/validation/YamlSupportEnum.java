@@ -19,7 +19,7 @@ public enum YamlSupportEnum {
 
     /** No support (only JSON is supported). */
     NONE("none"),
-    /** Forced (only YAML is supported). */
+    /** Forced (only YAML is supported). Obsolete as YAML 1.2 is a superset of JSON: treated as SUPPORT when configuration is loaded. */
     FORCE("force"),
     /** Supported (both YAML and JSON are supported). */
     SUPPORT("support");
