@@ -345,6 +345,8 @@ public class JSONValidator {
             var registry = registryBuilder.build();
             return Pair.of(registry.getSchema(jsonNode), jsonReader);
         } catch (Exception e) {
+            // If a limit on remote resources was exceeded (and the failure wrapped by the library) this is the reason to report.
+            RemoteResourceBudget.rethrowIfExceeded();
             throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
         }
     }
@@ -386,7 +388,15 @@ public class JSONValidator {
     private List<Message> validateAgainstSchema(FileInfo schemaFile) {
         var schemaInfo = readSchema(schemaFile);
         var locationMapper = getLocationMapper();
-        return schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight())).stream().map(error -> {
+        List<com.networknt.schema.Error> errors;
+        try {
+            errors = schemaInfo.getLeft().validate(getContentNode(schemaInfo.getRight()));
+        } catch (RuntimeException e) {
+            // Schema references are also resolved while validating. If a limit on remote resources was exceeded this is the reason to report.
+            RemoteResourceBudget.rethrowIfExceeded();
+            throw e;
+        }
+        return errors.stream().map(error -> {
             String pathPrefix = null;
             if (error.getInstanceLocation() != null) {
                 pathPrefix = error.getInstanceLocation().toString();

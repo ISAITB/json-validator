@@ -140,7 +140,7 @@ public class ValidationRunner extends BaseValidationRunner<DomainConfig> {
             var localiser = new LocalisationHelper(domainConfig, Utils.getSupportedLocale(LocaleUtils.toLocale(locale), domainConfig));
             for (ValidationInput input: inputs) {
                 LOGGER_FEEDBACK.info("\nValidating {} of {} ...", i+1, inputs.size());
-                try {
+                try (var ignored = openRemoteBudget()) {
                     JSONValidator validator = ctx.getBean(JSONValidator.class, ValidationSpecs.builder(input.getInputFile(), localiser, domainConfig)
                             .withValidationType(validationType)
                             .withExternalSchemas(externalSchemaFileInfo, externalSchemaCombinationApproach)
