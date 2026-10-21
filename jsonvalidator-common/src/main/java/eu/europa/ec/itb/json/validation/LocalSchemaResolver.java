@@ -16,6 +16,7 @@
 package eu.europa.ec.itb.json.validation;
 
 import com.networknt.schema.AbsoluteIri;
+import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.resource.InputStreamSource;
 import com.networknt.schema.resource.ResourceLoader;
 import com.networknt.schema.utils.AbsoluteIris;
@@ -23,6 +24,7 @@ import eu.europa.ec.itb.json.DomainConfig;
 import eu.europa.ec.itb.validation.commons.FileInfo;
 import eu.europa.ec.itb.validation.commons.ImportedFileAuthorizer;
 import eu.europa.ec.itb.validation.commons.ImportedUriAuthorizer;
+import eu.europa.ec.itb.validation.commons.RemoteRequestGuard;
 import eu.europa.ec.itb.validation.commons.URLReader;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
@@ -75,13 +77,34 @@ public class LocalSchemaResolver implements ResourceLoader {
         if (schema.isEmpty()) {
             LOG.debug("Schema with URI {} not found locally. Looking up remotely.", absoluteIri);
             URI uriToResolve = URI.create(AbsoluteIris.toUri(absoluteIri));
-            if (importAuthorizer != null) importAuthorizer.isUriAllowed(uriToResolve);
-            return () -> getUrlReader().stream(uriToResolve, null, domain.getHttpVersion(), schemaInfo.getRequestDecorator()).stream();
+            /*
+             * Every request (including redirects) is checked by the guard. Credentials configured for the schema are only
+             * sent to the host the schema itself was retrieved from, and not to any other host it references.
+             */
+            var guard = RemoteRequestGuard.forArtefact(importAuthorizer, schemaInfo.getSource());
+            guard.check(uriToResolve);
+            return () -> getUrlReader().stream(uriToResolve, null, domain.getHttpVersion(), schemaInfo.getRequestDecorator(), guard).stream();
         } else {
             LOG.debug("Schema with URI {} found locally.", absoluteIri);
             if (importFileAuthorizer != null) importFileAuthorizer.isPathAllowed(schema.get());
             return () -> Files.newInputStream(schema.get());
         }
+    }
+
+    /**
+     * Prevent schemas from referring to resources on the validator's classpath (via "classpath:" and "resource:" IRIs), which
+     * the library attempts to load before any other loader.
+     * <p>
+     * This must be the last customisation of the loaders as the restriction is not carried over by further customisations.
+     *
+     * @param builder The schema registry builder to restrict.
+     * @return The restricted builder.
+     */
+    static SchemaRegistry.Builder blockClasspathResources(SchemaRegistry.Builder builder) {
+        return builder.schemaLoader(loaderBuilder -> loaderBuilder.block(iri -> {
+            var iriAsString = iri.toString();
+            return iriAsString.startsWith("classpath:") || iriAsString.startsWith("resource:");
+        }));
     }
 
     /**

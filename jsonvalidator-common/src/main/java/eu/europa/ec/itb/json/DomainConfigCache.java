@@ -22,10 +22,14 @@ import eu.europa.ec.itb.validation.commons.config.WebDomainConfigCache;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 import static eu.europa.ec.itb.validation.commons.config.ParseUtils.addMissingDefaultValues;
 
@@ -34,6 +38,8 @@ import static eu.europa.ec.itb.validation.commons.config.ParseUtils.addMissingDe
  */
 @Component
 public class DomainConfigCache extends WebDomainConfigCache<DomainConfig> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DomainConfigCache.class);
 
     @Autowired
     private ApplicationConfig appConfig = null;
@@ -79,8 +85,20 @@ public class DomainConfigCache extends WebDomainConfigCache<DomainConfig> {
         addValidationArtifactInfo("validator.schemaFile", "validator.externalSchemas", "validator.externalSchemaCombinationApproach", domainConfig, config);
         domainConfig.getSharedSchemas().addAll(Arrays.asList(StringUtils.split(StringUtils.defaultIfBlank(config.getString("validator.referencedSchemas"), ""), ',')));
         domainConfig.setReportItemCount(config.getBoolean("validator.reportContentArrayItemCount", false));
-        var defaultYamlSupport = YamlSupportEnum.fromValue(config.getString("validator.yamlSupport", "none"));
-        domainConfig.setYamlSupport(ParseUtils.parseEnumMap("validator.yamlSupport", defaultYamlSupport, config, domainConfig.getType(), YamlSupportEnum::fromValue), defaultYamlSupport);
+        var forceUsed = new AtomicBoolean(false);
+        Function<String, YamlSupportEnum> yamlSupportParser = value -> {
+            var support = YamlSupportEnum.fromValue(value);
+            if (support == YamlSupportEnum.FORCE) {
+                forceUsed.set(true);
+                support = YamlSupportEnum.SUPPORT;
+            }
+            return support;
+        };
+        var defaultYamlSupport = yamlSupportParser.apply(config.getString("validator.yamlSupport", "none"));
+        domainConfig.setYamlSupport(ParseUtils.parseEnumMap("validator.yamlSupport", defaultYamlSupport, config, domainConfig.getType(), yamlSupportParser), defaultYamlSupport);
+        if (forceUsed.get()) {
+            LOG.warn("[{}] As of v1.2, YAML is a superset of JSON, making the 'force' option for 'validator.yamlSupport' obsolete and equivalent to 'support' (which will be used instead).", domainConfig.getDomainName());
+        }
         addMissingDefaultValues(domainConfig.getWebServiceDescription(), appConfig.getDefaultLabels());
     }
 
