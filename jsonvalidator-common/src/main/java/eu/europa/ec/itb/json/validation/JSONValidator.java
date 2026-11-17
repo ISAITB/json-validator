@@ -347,7 +347,7 @@ public class JSONValidator {
         } catch (Exception e) {
             // If a limit on remote resources was exceeded (and the failure wrapped by the library) this is the reason to report.
             RemoteResourceBudget.rethrowIfExceeded();
-            throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage());
+            throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage()).withInputReference(schemaInfo.getInputReference());
         }
     }
 
@@ -394,7 +394,10 @@ public class JSONValidator {
         } catch (RuntimeException e) {
             // Schema references are also resolved while validating. If a limit on remote resources was exceeded this is the reason to report.
             RemoteResourceBudget.rethrowIfExceeded();
-            throw e;
+            if (e instanceof ValidatorException) {
+                throw e;
+            }
+            throw new ValidatorException("validator.label.exception.failedToParseJSONSchema", e, e.getMessage()).withInputReference(schemaFile.getInputReference());
         }
         return errors.stream().map(error -> {
             String pathPrefix = null;
@@ -424,7 +427,7 @@ public class JSONValidator {
             try (var input = Files.newInputStream(specs.getInputFileToUse().toPath())) {
                 contentNode = reader.readTree(input, specs.isYaml()?InputFormat.YAML:InputFormat.JSON);
             } catch (IOException e) {
-                throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+                throw new ValidatorException("validator.label.exception.failedToParseJSON", e).withInputReference(ValidationConstants.INPUT_CONTENT);
             }
         }
         return contentNode;

@@ -99,7 +99,7 @@ public class ValidationSpecs {
                     try {
                         JSON_WRITER.writeValue(inputToParse, YAML_READER.readValue(input));
                     } catch (Exception e) {
-                        throw new ValidatorException("validator.label.exception.errorInputForPreprocessing", e);
+                        throw new ValidatorException("validator.label.exception.errorInputForPreprocessing", e).withInputReference(ValidationConstants.INPUT_CONTENT);
                     }
                 } else {
                     inputToParse = input;
@@ -120,9 +120,9 @@ public class ValidationSpecs {
                         }
                     }
                 } catch (JsonPathException e) {
-                    throw new ValidatorException("validator.label.exception.jsonPathError", e, expression);
+                    throw new ValidatorException("validator.label.exception.jsonPathError", e, expression).withInputReference(ValidationConstants.INPUT_CONTENT);
                 } catch (IOException e) {
-                    throw new ValidatorException("validator.label.exception.errorInputForPreprocessing", e);
+                    throw new ValidatorException("validator.label.exception.errorInputForPreprocessing", e).withInputReference(ValidationConstants.INPUT_CONTENT);
                 }
             }
         }
@@ -210,9 +210,10 @@ public class ValidationSpecs {
                 FileUtils.writeStringToFile(output, jsonOutput, StandardCharsets.UTF_8);
                 return output;
             } catch (JsonSyntaxException e) {
-                throw new ValidatorException("validator.label.exception.providedInputNotJSON", e);
+                var cause = (e.getCause() != null && e.getCause().getMessage() != null) ? e.getCause().getMessage() : e.getMessage();
+                throw new ValidatorException("validator.label.exception.providedInputNotJSONWithDetails", e, cause).withInputReference(ValidationConstants.INPUT_CONTENT);
             } catch (IOException e) {
-                throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+                throw new ValidatorException("validator.label.exception.failedToParseJSON", e).withInputReference(ValidationConstants.INPUT_CONTENT);
             }
         }
     }
@@ -235,7 +236,7 @@ public class ValidationSpecs {
                     String firstLine = reader.readLine();
                     isYamlInternal = firstLine != null && !(firstLine.startsWith("{") || firstLine.startsWith("["));
                 } catch (IOException e) {
-                    throw new ValidatorException("validator.label.exception.failedToParseJSON", e);
+                    throw new ValidatorException("validator.label.exception.failedToParseJSON", e).withInputReference(ValidationConstants.INPUT_CONTENT);
                 }
             }
         }
