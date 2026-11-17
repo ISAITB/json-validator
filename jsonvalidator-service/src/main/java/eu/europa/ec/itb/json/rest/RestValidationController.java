@@ -139,6 +139,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
             HttpServletRequest request
     ) {
         DomainConfig domainConfig = validateDomain(domain);
+        recordErrorLocaliser(domainConfig, in.getLocale());
         // Consider the case that we have a cross-domain alias and resolve the validation type accordingly.
         in.setValidationType(inputHelper.determineValidationType(in.getValidationType(), domain, domainConfig));
         /*
@@ -177,7 +178,7 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
             var contentEmbeddingMethod = inputHelper.getEmbeddingMethod(in.getEmbeddingMethod());
             var externalSchemaCombinationApproach = inputHelper.getValidationArtifactCombinationApproach(domainConfig, validationType, in.getExternalSchemaCombinationApproach());
             var externalSchemas = getExternalSchemas(domainConfig, in.getExternalSchemas(), validationType, null, parentFolder);
-            var contentToValidate = inputHelper.validateContentToValidate(in.getContentToValidate(), contentEmbeddingMethod, null, parentFolder, domainConfig.getHttpVersion()).getFile();
+            var contentToValidate = inputHelper.validateContentToValidate(in.getContentToValidate(), contentEmbeddingMethod, null, parentFolder, domainConfig.getHttpVersion(), "contentToValidate").getFile();
             var builder = ValidationSpecs.builder(contentToValidate, localiser, domainConfig)
                     .withValidationType(validationType)
                     .withExternalSchemas(externalSchemas, externalSchemaCombinationApproach);
@@ -273,11 +274,20 @@ public class RestValidationController extends BaseRestController<DomainConfig, A
     ) {
         DomainConfig domainConfig = validateDomain(domain);
         var outputs = new ArrayList<Output>(inputs.length);
+        int inputIndex = 0;
         for (Input input: inputs) {
+            recordErrorLocaliser(domainConfig, input.getLocale());
             Output output = new Output();
             // Consider the case that we have a cross-domain alias and resolve the validation type accordingly.
             input.setValidationType(inputHelper.determineValidationType(input.getValidationType(), domain, domainConfig));
-            var report = executeValidationProcess(input, domainConfig);
+            TAR report;
+            try {
+                report = executeValidationProcess(input, domainConfig);
+            } catch (ValidatorException e) {
+                // Identify which of the provided inputs failed.
+                throw e.withInputReferencePrefix("[" + inputIndex + "]");
+            }
+            inputIndex += 1;
             try (var bos = new ByteArrayOutputStream()) {
                 var wrapReportDataInCDATA = Objects.requireNonNullElse(input.getWrapReportDataInCDATA(), false);
                 fileManager.saveReport(report, bos, domainConfig, wrapReportDataInCDATA);
